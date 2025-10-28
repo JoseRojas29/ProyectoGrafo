@@ -1,0 +1,84 @@
+# ==========================================
+# ⚙️ ARCHIVOS TEMPORALES DE VISUAL STUDIO
+# ==========================================
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ==========================================
+# 📦 COMPILACIÓN Y OBJETOS BINARIOS
+# ==========================================
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Bb]uild/
+[Bb]in/
+[Oo]bj/
+[Bb]ackup*/
+
+# ==========================================
+# 🧠 ARCHIVOS DE CONFIGURACIÓN LOCAL
+# ==========================================
+*.pdb
+*.db
+*.db-shm
+*.db-wal
+*.log
+*.cache
+*.bak
+*.tmp
+*.swp
+*.ncb
+*.opendb
+
+# ==========================================
+# 🧱 DIRECTORIOS DE PRUEBAS O RESULTADOS
+# ==========================================
+TestResults/
+*.coverage
+*.coveragexml
+
+# ==========================================
+# 🧩 CONFIGURACIONES DE VS CODE / IDES
+# ==========================================
+.vscode/
+.idea/
+*.code-workspace
+
+# ==========================================
+# 🖼️ ARCHIVOS DE SISTEMA
+# ==========================================
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ==========================================
+# 🌍 PUBLICACIONES / DEPLOY
+# ==========================================
+publish/
+*.Publish.xml
+*.PublishSettings
+
+# ==========================================
+# 🧰 DOTNET / NUGET / DEPENDENCIAS
+# ==========================================
+*.nuget
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# ==========================================
+# 🧮 ARCHIVOS DE CONFIGURACIÓN DE USUARIO
+# ==========================================
+*.vspscc
+*.vssscc
+*.v12.suo
