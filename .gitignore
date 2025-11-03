@@ -6,6 +6,11 @@
 *.suo
 *.userosscache
 *.sln.docstates
+*.db
+*.db-shm
+*.db-wal
+*.vsidx
+*.sqlite
 
 # ==========================================
 # 📦 COMPILACIÓN Y OBJETOS BINARIOS
