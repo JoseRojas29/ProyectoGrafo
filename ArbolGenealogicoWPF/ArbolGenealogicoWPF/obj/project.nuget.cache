@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "Z8nO2rVtR/w=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\joseg\\OneDrive\\Escritorio\\✦ Arken ✦\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\joseg\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.20\\microsoft.windowsdesktop.app.ref.8.0.20.nupkg.sha512",
+    "C:\\Users\\joseg\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.20\\microsoft.netcore.app.ref.8.0.20.nupkg.sha512",
+    "C:\\Users\\joseg\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.20\\microsoft.aspnetcore.app.ref.8.0.20.nupkg.sha512",
+    "C:\\Users\\joseg\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.20\\microsoft.netcore.app.host.win-x64.8.0.20.nupkg.sha512"
+  ],
+  "logs": []
+}
