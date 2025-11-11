@@ -3,12 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\MainWindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ArbolGenealogicoWPF\\MainWindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\MainWindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ArbolGenealogicoWPF\\MainWindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\MainWindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ArbolGenealogicoWPF\\MainWindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\Familiar.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ArbolGenealogicoWPF\\Familiar.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ArbolGenealogicoWPF\\ArbolGenealogicoWPF.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,29 +26,56 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
+              "Title": "ArbolGenealogicoWPF.csproj",
+              "DocumentMoniker": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF.csproj",
+              "RelativeDocumentMoniker": "ArbolGenealogicoWPF\\ArbolGenealogicoWPF.csproj",
+              "ToolTip": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF.csproj",
+              "RelativeToolTip": "ArbolGenealogicoWPF\\ArbolGenealogicoWPF.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-11-11T00:49:31.83Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Familiar.cs",
+              "DocumentMoniker": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\Familiar.cs",
+              "RelativeDocumentMoniker": "ArbolGenealogicoWPF\\Familiar.cs",
+              "ToolTip": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\Familiar.cs",
+              "RelativeToolTip": "ArbolGenealogicoWPF\\Familiar.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-10T21:25:06.71Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\MainWindow.xaml",
               "RelativeDocumentMoniker": "ArbolGenealogicoWPF\\MainWindow.xaml",
               "ToolTip": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\MainWindow.xaml",
               "RelativeToolTip": "ArbolGenealogicoWPF\\MainWindow.xaml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAG0AAAAAAAAAAAAewHwAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-11-03T22:24:58.657Z"
+              "WhenOpened": "2025-11-03T22:24:58.657Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "ArbolGenealogicoWPF\\MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\joseg\\OneDrive\\Escritorio\\\u2726 Arken \u2726\\Tec\\Semestre II\\Algorithms and Data Structures 1\\Proyectos\\Proyecto2\\ProyectoGrafo\\ArbolGenealogicoWPF\\ArbolGenealogicoWPF\\MainWindow.xaml.cs",
               "RelativeToolTip": "ArbolGenealogicoWPF\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAsAAAAAAAAAAAArwBgAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-03T22:24:56.096Z",
               "EditorCaption": ""

@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\ArbolGenealogicoWPF"
+    "\\ArbolGenealogicoWPF",
+    "\\ArbolGenealogicoWPF\\Fonts"
   ],
-  "SelectedNode": "\\ArbolGenealogicoWPF\\MainWindow.xaml.cs",
+  "SelectedNode": "\\ArbolGenealogicoWPF\\MainWindow.xaml",
   "PreviewInSolutionExplorer": false
 }
