@@ -7,11 +7,17 @@
         WindowStyle="None"
         AllowsTransparency="True"
         ResizeMode="CanResizeWithGrip"
-        Background="Transparent">
+        Background="Transparent"
+		FontFamily="pack://application:,,,/Fonts/#Orbitron">
 
 	<Window.Resources>
 		<!-- TextBox (Espacios para que el usuario escriba) -->
 		<Style TargetType="TextBox">
+			<Setter Property="FontSize" Value="16"/>
+			<Setter Property="Padding" Value="4"/>
+			<Setter Property="Background" Value="#1A0033"/>
+			<Setter Property="Foreground" Value="#FF6F00"/>
+			<Setter Property="BorderBrush" Value="#FF9100"/>
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="TextBox">
@@ -35,13 +41,17 @@
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
-			<Setter Property="Background" Value="#1A0033"/>
-			<Setter Property="Foreground" Value="#FF6F00"/>
-			<Setter Property="BorderBrush" Value="#FF9100"/>
 		</Style>
 
 		<!-- Button (Todos los botones) -->
 		<Style TargetType="Button">
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="FontSize" Value="20"/>
+			<Setter Property="Background" Value="#1A0033"/>
+			<Setter Property="Foreground" Value="#FFAB40"/>
+			<Setter Property="BorderBrush" Value="#FF9100"/>
+			<Setter Property="Padding" Value="12,6"/>
+			<Setter Property="Margin" Value="0,0,12,8"/>
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="Button">
@@ -68,17 +78,12 @@
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
-			<Setter Property="Background" Value="#1A0033"/>
-			<Setter Property="Foreground" Value="#FFAB40"/>
-			<Setter Property="BorderBrush" Value="#FF9100"/>
-			<Setter Property="Padding" Value="12,6"/>
-			<Setter Property="Margin" Value="0,0,12,8"/>
 		</Style>
 
 		<!-- TextBlock (Texto de solo lectura) -->
 		<Style TargetType="TextBlock">
 			<Setter Property="Foreground" Value="#FF6F00"/>
-			<Setter Property="FontSize" Value="16"/>
+			<Setter Property="FontSize" Value="20"/>
 			<Setter Property="FontWeight" Value="SemiBold"/>
 		</Style>
 
@@ -113,10 +118,10 @@
 			<RowDefinition Height="50"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-		
+
 		<!-- Barra de la ventana personalizada -->
 		<Border Grid.Row="0" Background="#1A0033"
-				Padding="0" 
+				Padding="0"
 				MouseLeftButtonDown="Window_MouseLeftButtonDown">
 			<Grid>
 				<Grid.ColumnDefinitions>
@@ -133,7 +138,7 @@
 						   FontWeight="Bold"
 						   Margin="12,0,0,0"/>
 
-				<!-- Botones centrados verticalmente -->
+				<!-- Botones de la barra -->
 				<StackPanel Grid.Column="1"
 							Orientation="Horizontal"
 							VerticalAlignment="Center"
@@ -161,24 +166,40 @@
 
 			<!-- Datos del familiar -->
 			<StackPanel Grid.Column="0" Margin="0,0,16,0">
-				<TextBlock Text="Ingreso de familiar" FontWeight="Bold" FontSize="18" Margin="0,0,0,8"/>
-				<TextBox x:Name="NombreText" Margin="0,0,0,8" ToolTip="Nombre"/>
-				<TextBox x:Name="FechaText" Margin="0,0,0,8" ToolTip="Fecha de nacimiento (dd/mm/aaaa)"/>
-				<TextBox x:Name="PaisText" Margin="0,0,0,8" ToolTip="País"/>
-				<TextBox x:Name="CiudadText" Margin="0,0,0,8" ToolTip="Ciudad"/>
-				<TextBox x:Name="LatText" Margin="0,0,0,8" ToolTip="Latitud (ej. 9.93)"/>
-				<TextBox x:Name="LonText" Margin="0,0,0,8" ToolTip="Longitud (ej. -84.08)"/>
-				<StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-					<TextBox x:Name="FotoText" Width="260" Margin="0,0,8,0" ToolTip="Ruta foto (opcional)"/>
-					<Button Content="Seleccionar foto" Click="SeleccionarFoto_Click"/>
+				<TextBlock Text="Ingreso de familiar" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
+
+				<TextBlock Text="Nombre Completo" Margin="0,0,0,8"/>
+				<TextBox x:Name="NombreInput" Margin="0,0,0,8" ToolTip="Nombre completo"/>
+
+				<TextBlock Text="Cédula (sin espacio ni guion)" FontSize="18" Margin="0,0,0,8"/>
+				<TextBox x:Name="CedulaInput" Margin="0,0,0,8" ToolTip="Cédula"/>
+
+				<TextBlock Text="Fecha de Nacimiento (dd/mm/aaaa)" Margin="0,0,0,8"/>
+				<TextBox x:Name="FechaInput" Margin="0,0,0,8" ToolTip="Fecha de nacimiento (dd/mm/aaaa)"/>
+
+				<TextBlock Text="Coordenadas de residencia (x,y)" Margin="0,0,0,8"/>
+				<TextBox x:Name="CoordenadasInput" Margin="0,0,0,8" ToolTip="(ej: 9.93,84.08)"/>
+
+				<TextBlock Text="Edad" Margin="0,0,0,8"/>
+				<TextBox x:Name="EdadInput" Margin="0,0,0,8" ToolTip="Edad actual o a la que falleció"/>
+
+				<!-- Contenedor horizontal para botón y preview de foto -->
+				<StackPanel Orientation="Horizontal" Margin="0,8,0,8" VerticalAlignment="Center">
+					<Button x:Name="SeleccionarFotoBtn" Content="Seleccionar foto" Click="SeleccionarFoto_Click"/>
+					<Border Width="120" Height="120" Background="#222" CornerRadius="4" BorderBrush="#444" BorderThickness="1">
+						<Image x:Name="FotoPreview" Stretch="UniformToFill"/>
+					</Border>
 				</StackPanel>
-				<StackPanel Orientation="Horizontal" >
-					<Button Content="Agregar" Margin="0,0,8,0" Click="Agregar_Click"/>
-					<Button Content="Eliminar seleccionado" Click="Eliminar_Click"/>
+
+				<StackPanel Orientation="Vertical" Margin="0,16,0,0">
+					<Button Content="Agregar" Click="Agregar_Click" Padding="8,4"/>
+					<Button Content="Eliminar seleccionado" Click="Eliminar_Click" Padding="8,4"/>
+					<Button Content="Estadísticas" Click="AbrirEstadisticas_Click" Padding="8,4"/>
+					<Button Content="Mapa" Click="AbrirMapa_Click" Padding="8,4"/>
 				</StackPanel>
 			</StackPanel>
 
-			<!-- Lista de familiares (Ahorita se va, porque son los nodos realmente) -->
+			<!-- Lista de familiares (Ahorita se va, porque son los nodos realmente, y group box pareciera que también) -->
 			<GroupBox Grid.Column="1" Header="Familiares"
 			  Background="#111111" Foreground="#00FFFF"
 			  BorderBrush="#00FFFF" BorderThickness="2">
@@ -187,8 +208,8 @@
 						  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				</ListView>
 			</GroupBox>
-		
+
 		</Grid>
 	</Grid>
-			
+
 </Window>

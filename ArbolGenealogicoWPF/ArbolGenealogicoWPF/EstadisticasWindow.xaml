@@ -1,0 +1,18 @@
+﻿<Window x:Class="ArbolGenealogicoWPF.EstadisticasWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Estadísticas"
+        Height="300" Width="400"
+        Background="#0E0E16">
+	<Grid Margin="16">
+		<StackPanel>
+			<TextBlock Text="Estadísticas" FontSize="20" FontWeight="Bold" Margin="0,0,0,8"/>
+			<TextBlock Text="{Binding Total, StringFormat=Total: {0}}"/>
+			<TextBlock Text="{Binding Vivos, StringFormat=Vivos: {0}}"/>
+			<TextBlock Text="{Binding Fallecidos, StringFormat=Fallecidos: {0}}"/>
+			<TextBlock Text="{Binding EdadPromedio, StringFormat=Edad promedio: {0:F1}}"/>
+			<Button Content="Cerrar" Margin="0,12,0,0" Click="Cerrar_Click"/>
+		</StackPanel>
+	</Grid>
+</Window>
+
