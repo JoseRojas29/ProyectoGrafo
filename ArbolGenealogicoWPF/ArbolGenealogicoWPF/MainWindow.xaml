@@ -46,7 +46,7 @@
 		<!-- Button (Todos los botones) -->
 		<Style TargetType="Button">
 			<Setter Property="FontWeight" Value="SemiBold"/>
-			<Setter Property="FontSize" Value="20"/>
+			<Setter Property="FontSize" Value="16"/>
 			<Setter Property="Background" Value="#1A0033"/>
 			<Setter Property="Foreground" Value="#FFAB40"/>
 			<Setter Property="BorderBrush" Value="#FF9100"/>
@@ -183,16 +183,21 @@
 				<TextBlock Text="Edad" Margin="0,0,0,8"/>
 				<TextBox x:Name="EdadInput" Margin="0,0,0,8" ToolTip="Edad actual o a la que falleció"/>
 
+				<!-- El parentesco es obligatorio al agregar un nodo respecto a otro mas no para la raíz -->
+				<TextBlock Text="Parentesco" Margin="0,0,0,8"/>
+				<TextBox x:Name="ParentescoInput" Margin="0,0,0,8" ToolTip="Parentesco con la persona seleccionada"/>
+
 				<!-- Contenedor horizontal para botón y preview de foto -->
 				<StackPanel Orientation="Horizontal" Margin="0,8,0,8" VerticalAlignment="Center">
-					<Button x:Name="SeleccionarFotoBtn" Content="Seleccionar foto" Click="SeleccionarFoto_Click"/>
-					<Border Width="120" Height="120" Background="#222" CornerRadius="4" BorderBrush="#444" BorderThickness="1">
+					<Button x:Name="SeleccionarFotoBtn" Content="Seleccionar foto" Click="SeleccionarFoto_Click" Width="200" Height="60"/>
+					<Border Width="80" Height="80" Background="#222" CornerRadius="4" BorderBrush="#444" BorderThickness="1">
 						<Image x:Name="FotoPreview" Stretch="UniformToFill"/>
 					</Border>
 				</StackPanel>
 
 				<StackPanel Orientation="Vertical" Margin="0,16,0,0">
-					<Button Content="Agregar" Click="Agregar_Click" Padding="8,4"/>
+					<Button Content="Crear árbol" Click="Agregar_Click" Padding="8,4"/>
+					<Button Content="Agregar respecto al seleccionado" Click="Agregar_Click" Padding="8,4"/>
 					<Button Content="Eliminar seleccionado" Click="Eliminar_Click" Padding="8,4"/>
 					<Button Content="Estadísticas" Click="AbrirEstadisticas_Click" Padding="8,4"/>
 					<Button Content="Mapa" Click="AbrirMapa_Click" Padding="8,4"/>
