@@ -73,7 +73,7 @@
 
 				<!-- Título de la barra -->
 				<TextBlock Grid.Column="0"
-					   Text="Estadísticas"
+					   Text="Estadísticas de distancia"
 					   VerticalAlignment="Center"
 					   Foreground="#FF6F00"
 					   FontSize="16"
@@ -103,10 +103,17 @@
 		<Grid Grid.Row="1" Margin="16">
 
 			<!-- Estadísticas Generales -->
-			<StackPanel Grid.Column="0" Margin="0,0,16,0">
-				<TextBlock x:Name="Farthest" Text="Vacío esperando mensaje" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
-				<TextBlock x:Name="Closest" Text="Vacío esperando mensaje" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
-				<TextBlock x:Name="Promedio" Text="Vacío esperando mensaje" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
+			<StackPanel Grid.Column="0"
+						VerticalAlignment="Center" 
+						HorizontalAlignment="Center">
+				<TextBlock Text="Familiares más lejanos:" FontWeight="Bold" FontSize="28" TextAlignment="Center" Margin="0,0,0,10"/>
+				<TextBlock x:Name="Farthest" Text="Esperando datos..." FontWeight="Bold" FontSize="28" TextAlignment="Center" Margin="0,20,0,80"/>
+
+				<TextBlock Text="Familiares más cercanos" FontWeight="Bold" FontSize="28" TextAlignment="Center" Margin="0,10,0,10"/>
+				<TextBlock x:Name="Closest" Text="Esperando datos..." FontWeight="Bold" FontSize="28" TextAlignment="Center" Margin="0,20,0,80"/>
+
+				<TextBlock Text="Distancia promedio entre familiares" FontWeight="Bold" FontSize="28" TextAlignment="Center" Margin="0,10,0,10"/>
+				<TextBlock x:Name="Promedio" Text="Esperando datos..." FontWeight="Bold" FontSize="28" TextAlignment="Center" Margin="0,20,0,0"/>
 			</StackPanel>
 
 		</Grid>

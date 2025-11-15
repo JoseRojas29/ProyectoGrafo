@@ -25,6 +25,18 @@ namespace ArbolGenealogicoWPF
         // Ruta temporal de la foto seleccionada
         private string? rutaFotoTemporal;
 
+        // Cédula numérica sin signos ni espacios
+        private int cedulaValida;
+
+        // Fecha de nacimiento validada
+        private DateTime? fechaNacimiento;
+
+        // Edad validada
+        private int edadValida;
+
+        // Lista de parentescos válidos (primer grado de consanguinidad)
+        private readonly string[] parentescosValidos = {"padre", "madre", "esposo", "esposa", "hijo", "hija", "hermano", "hermana"};
+
         public MainWindow()
         {
             InitializeComponent();
@@ -59,7 +71,7 @@ namespace ArbolGenealogicoWPF
                 }
                 catch
                 {
-                    var errorWin = new ErrorWindow("No se pudo cargar la imagen seleccionada.");
+                    var errorWin = new ErroresWindow("No se pudo cargar la imagen seleccionada.");
                     errorWin.Owner = this; // Para que se centre sobre la ventana principal
                     errorWin.ShowDialog(); // ShowDialog bloquea hasta que se cierre
                     rutaFotoTemporal = null;
@@ -67,26 +79,44 @@ namespace ArbolGenealogicoWPF
                 }
             }
         }
-
-        private void Agregar_Click(object sender, RoutedEventArgs e)
+        
+        private void CrearArbol_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(NombreInput.Text))
-            {
-                MessageBox.Show("El nombre es obligatorio.");
+            if (!VerificarDatos(1))
                 return;
-            }
 
             // Crear nuevo familiar
             var f = new Familiar
             {
                 Nombre = NombreInput.Text.Trim(),
-                Cedula = CedulaInput.Text.Trim(),
+                Cedula = cedulaValida,
                 Coordenadas = CoordenadasInput.Text.Trim(),
-                FechaNacimiento = DateTime.TryParse(FechaInput.Text, out var fechaVal) ? fechaVal : (DateTime?)null,
+                FechaNacimiento = fechaNacimiento,
+                Edad = edadValida,
                 RutaFoto = rutaFotoTemporal
             };
 
-            // recalcular edad dentro de Familiar si corresponde
+            familiares.Add(f);
+            LimpiarFormulario();
+        }
+
+        private void Agregar_Click(object sender, RoutedEventArgs e)
+        {
+            if (!VerificarDatos(2))
+                return;
+
+            // Crear nuevo familiar
+            var f = new Familiar
+            {
+                Nombre = NombreInput.Text.Trim(),
+                Cedula = cedulaValida,
+                Coordenadas = CoordenadasInput.Text.Trim(),
+                FechaNacimiento = fechaNacimiento,
+                Edad = edadValida,
+                Parentesco = ParentescoInput.Text.Trim(),
+                RutaFoto = rutaFotoTemporal
+            };
+
             familiares.Add(f);
             LimpiarFormulario();
         }
@@ -96,11 +126,13 @@ namespace ArbolGenealogicoWPF
         {
             if (FamiliaresList.SelectedItem is Familiar sel)
             {
-                _familiares.Remove(sel);
+                familiares.Remove(sel);
             }
             else
             {
-                MessageBox.Show("Selecciona un familiar en la lista para eliminar.");
+                var errorWin = new ErroresWindow("Selecciona un familiar en la lista para eliminar.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
             }
         }
 
@@ -121,7 +153,7 @@ namespace ArbolGenealogicoWPF
             if (mapaWin == null || !mapaWin.IsLoaded)
             {
                 mapaWin = new MapaWindow(familiares) { Owner = this };
-                mapaWin.Closed += (_, __) => _mapaWin = null;
+                mapaWin.Closed += (_, __) => mapaWin = null;
             }
 
             mapaWin.Show();
@@ -142,6 +174,101 @@ namespace ArbolGenealogicoWPF
             ParentescoInput.Text = "";
             rutaFotoTemporal = null;
             FotoPreview.Source = null;
+        }
+
+        private bool VerificarDatos(int modo)
+        {
+            // Nombre obligatorio
+            if (string.IsNullOrWhiteSpace(NombreInput.Text))
+            {
+                var errorWin = new ErroresWindow("Por favor ingrese un nombre.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
+            // Cédula obligatoria
+            if (string.IsNullOrWhiteSpace(CedulaInput.Text))
+            {
+                var errorWin = new ErroresWindow("Por favor ingrese una cédula.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
+            // Normalizar: quitar espacios, guiones, comas y puntos
+            string cedulaNormalizada = CedulaInput.Text.Replace(" ", "").Replace("-", "").Replace(",", "").Replace(".", "");
+
+            // Intentar convertir a entero
+            if (!int.TryParse(cedulaNormalizada, out int cedulaNumerica))
+            {
+                var errorWin = new ErroresWindow("La cédula debe contener solo números.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
+            // Guardar valor ya convertido para asignarlo
+            cedulaValida = cedulaNumerica;
+
+            // Fecha obligatoria y válida
+            if (string.IsNullOrWhiteSpace(FechaInput.Text) || !DateTime.TryParse(FechaInput.Text, out DateTime fechaValidada))
+            {
+                var errorWin = new ErroresWindow("Por favor ingrese una fecha válida.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
+            fechaNacimiento = fechaValidada;
+
+            // Coordenadas obligatorias (luego se puede hacer una verificación para ver si son válidas en el sistema)
+            if (string.IsNullOrWhiteSpace(CoordenadasInput.Text))
+            {
+                var errorWin = new ErroresWindow("Por favor ingrese las coordenadas.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
+            // Edad obligatoria y válida
+            if (string.IsNullOrWhiteSpace(EdadInput.Text) || !int.TryParse(EdadInput.Text, out int edad) || edad <= 0)
+            {
+                var errorWin = new ErroresWindow("Por favor ingrese una edad válida.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
+            edadValida = edad;
+
+            // Parentesco solo si es modo 2 (agregar familiar)
+            if (modo == 2)
+            {
+                string parentescoIngresado = ParentescoInput.Text.Trim().ToLower();
+
+                if (string.IsNullOrWhiteSpace(parentescoIngresado) ||
+                    !parentescosValidos.Contains(parentescoIngresado))
+                {
+                    var errorWin = new ErroresWindow(
+                        "Por favor ingrese un parentesco válido: \n Padre, Madre, Esposo, Esposa, Hijo, Hija, Hermano o Hermana."
+                    );
+                    errorWin.Owner = this;
+                    errorWin.ShowDialog();
+                    return false;
+                }
+            }
+
+            // Foto obligatoria
+            if (rutaFotoTemporal == null || FotoPreview.Source == null)
+            {
+                var errorWin = new ErroresWindow("Por favor ingrese una foto de la persona.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
+            return true;
         }
     }
 }
