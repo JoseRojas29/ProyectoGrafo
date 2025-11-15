@@ -1,0 +1,112 @@
+﻿<local:WindowBaseLogica x:Class="ArbolGenealogicoWPF.ErroresWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:ArbolGenealogicoWPF"
+		SizeToContent="Manual"
+		Height="200"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+		FontFamily="pack://application:,,,/Fonts/#Orbitron">
+
+    <Window.Resources>
+        <!-- TextBlock (Texto de solo lectura) -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FF6F00"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Button (Todos los botones) -->
+        <Style TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Background" Value="#1A0033"/>
+            <Setter Property="Foreground" Value="#FFAB40"/>
+            <Setter Property="BorderBrush" Value="#FF9100"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,12,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+						Background="{TemplateBinding Background}"
+						BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="2"
+						CornerRadius="4"
+						Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- Mouse sobre el botón -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#180028"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#B833FF"/>
+                            </Trigger>
+                            <!-- Botón presionado -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#2A003F"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#B833FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+    </Window.Resources>
+
+    <Grid Background="#000000">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Barra de la ventana personalizada -->
+        <Border Grid.Row="0" Background="#1A0033"
+			Padding="0"
+			MouseLeftButtonDown="Window_MouseLeftButtonDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Título de la barra -->
+                <TextBlock Grid.Column="0"
+					   Text="Error"
+					   VerticalAlignment="Center"
+					   Foreground="#FF6F00"
+					   FontSize="16"
+					   FontWeight="Bold"
+					   Margin="12,0,0,0"/>
+
+                <!-- Botones de la barra -->
+                <StackPanel Grid.Column="1"
+						Orientation="Horizontal"
+						VerticalAlignment="Center"
+						HorizontalAlignment="Right"
+						Margin="0,0,8,0">
+                    <Button Content="✖" Width="40" Height="28" Padding="0" FontSize="14"
+						VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+						Click="Close_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Contenido principal -->
+        <Grid Grid.Row="1" Margin="16">
+
+            <!-- Mensaje de error -->
+            <StackPanel Grid.Column="0"
+						VerticalAlignment="Center"
+						HorizontalAlignment="Center">
+                <TextBlock x:Name="ErrorMessageText" Text="Vacío esperando mensaje" 
+						   FontWeight="Bold" FontSize="28" Margin="0,0,0,0"/>
+            </StackPanel>
+
+        </Grid>
+    </Grid>
+    
+</local:WindowBaseLogica>
