@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Windows;   // 👈 también aquí
+using System.Windows;
 using System.Windows.Controls;
 
 namespace ArbolGenealogicoWPF
 {
-    public partial class MapaWindow : Window
+    public partial class MapaWindow : WindowBaseLogica
     {
         private readonly ObservableCollection<Familiar> _familiares;
 

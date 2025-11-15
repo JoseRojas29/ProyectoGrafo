@@ -10,6 +10,7 @@ public class Familiar : INotifyPropertyChanged
     private string _cedula = string.Empty;
     private string _coordenadas = string.Empty;
     private string _rutaFoto = string.Empty;
+    private string _parentesco = string.Empty;
 
     private DateTime? _fechaNacimiento;
     private DateTime? _fechaFallecimiento;
@@ -19,6 +20,12 @@ public class Familiar : INotifyPropertyChanged
     {
         get => _nombre;
         set { _nombre = value ?? string.Empty; OnPropertyChanged(nameof(Nombre)); }
+    }
+
+    public string Parentesco
+    {
+        get => _parentesco;
+        set { _parentesco = value ?? string.Empty; OnPropertyChanged(nameof(Parentesco)); }
     }
 
     public string Cedula

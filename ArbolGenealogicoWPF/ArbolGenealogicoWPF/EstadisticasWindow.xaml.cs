@@ -6,15 +6,15 @@ using System.Windows.Controls;
 
 namespace ArbolGenealogicoWPF
 {
-    public partial class EstadisticasWindow : Window
+    public partial class EstadisticasWindow : WindowBaseLogica
     {
-        private readonly ObservableCollection<Familiar> _familiares;
+        private readonly ObservableCollection<Familiar> familiares;
 
-        public EstadisticasWindow(ObservableCollection<Familiar> familiares)
+        public EstadisticasWindow(ObservableCollection<Familiar> ListaFamiliares)
         {
             InitializeComponent();
-            _familiares = familiares;
-            _familiares.CollectionChanged += (_, __) => Calcular();
+            familiares = ListaFamiliares;
+            familiares.CollectionChanged += (_, __) => Calcular();
             Calcular();
             DataContext = this;
         }
@@ -26,13 +26,11 @@ namespace ArbolGenealogicoWPF
 
         private void Calcular()
         {
-            Total = _familiares.Count;
-            Vivos = _familiares.Count(f => !f.IsDeceased);
-            Fallecidos = _familiares.Count(f => f.IsDeceased);
-            var edades = _familiares.Where(f => f.Edad.HasValue).Select(f => f.Edad.Value).ToList();
+            Total = familiares.Count;
+            Vivos = familiares.Count(f => !f.IsDeceased);
+            Fallecidos = familiares.Count(f => f.IsDeceased);
+            var edades = familiares.Where(f => f.Edad.HasValue).Select(f => f.Edad.Value).ToList();
             EdadPromedio = edades.Count > 0 ? edades.Average() : 0;
         }
-
-        private void Cerrar_Click(object sender, RoutedEventArgs e) => Close();
     }
 }
