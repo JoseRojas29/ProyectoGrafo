@@ -8,9 +8,7 @@ namespace ArbolGenealogico.Tests
     [TestClass]
     public class ArbolGenealogicoTests
     {
-        // ======================================
-        // 1. PRUEBA: Asignar padre correctamente
-        // ======================================
+        // 1. Asignar padre
         [TestMethod]
         public void TestAsignarPadre_AsignaCorrectamente()
         {
@@ -23,10 +21,7 @@ namespace ArbolGenealogico.Tests
             Assert.IsTrue(padre.Hijos.Contains(hijo));
         }
 
-
-        // ======================================
-        // 2. PRUEBA: Asignar madre correctamente
-        // ======================================
+        // 2. Asignar madre
         [TestMethod]
         public void TestAsignarMadre_AsignaCorrectamente()
         {
@@ -39,10 +34,7 @@ namespace ArbolGenealogico.Tests
             Assert.IsTrue(madre.Hijos.Contains(hijo));
         }
 
-
-        // ======================================
-        // 3. PRUEBA: Impedir dos padres distintos
-        // ======================================
+        // 3. No permitir dos padres
         [TestMethod]
         public void TestAsignarPadre_NoPermiteDosPadres()
         {
@@ -58,10 +50,7 @@ namespace ArbolGenealogico.Tests
             });
         }
 
-
-        // ======================================
-        // 4. PRUEBA: Asignar pareja
-        // ======================================
+        // 4. Asignar pareja
         [TestMethod]
         public void TestAsignarPareja_Bidireccional()
         {
@@ -74,10 +63,7 @@ namespace ArbolGenealogico.Tests
             Assert.AreEqual(a, b.Pareja);
         }
 
-
-        // ======================================
-        // 5. PRUEBA: Obtener hermanos por padre y madre
-        // ======================================
+        // 5. Obtener hermanos
         [TestMethod]
         public void TestObtenerHermanos_Combinados()
         {
@@ -98,10 +84,7 @@ namespace ArbolGenealogico.Tests
             Assert.AreEqual(hijo2, hermanos[0]);
         }
 
-
-        // ======================================
-        // 6. PRUEBA: Agregar primer nodo del árbol
-        // ======================================
+        // 6. Agregar primer nodo
         [TestMethod]
         public void TestAgregarPrimerNodo()
         {
@@ -114,10 +97,7 @@ namespace ArbolGenealogico.Tests
             Assert.AreEqual(raiz, arbol.Raiz);
         }
 
-
-        // ======================================
-        // 7. PRUEBA: No permitir reemplazar raíz existente
-        // ======================================
+        // 7. No reemplazar raíz
         [TestMethod]
         public void TestAgregarPrimerNodo_NoReemplazaExistente()
         {
@@ -132,10 +112,7 @@ namespace ArbolGenealogico.Tests
             Assert.AreEqual(raiz1, arbol.Raiz);
         }
 
-
-        // ======================================
-        // 8. PRUEBA: Detectar parejas automáticamente (mismos hijos)
-        // ======================================
+        // 8. Detectar parejas automáticas
         [TestMethod]
         public void TestDetectarParejasAutomaticas()
         {
@@ -155,12 +132,9 @@ namespace ArbolGenealogico.Tests
             Assert.AreEqual(padre, madre.Pareja);
         }
 
-
-        // ======================================
-        // 9. PRUEBA: Generar grafo (Padre/Madre / hijo)
-        // ======================================
+        // 9. MATRIZ: Padre/Madre ↔ hijo
         [TestMethod]
-        public void TestGenerarGrafo_PadreMadreHijo()
+        public void TestGenerarMatriz_PadreMadreHijo()
         {
             var padre = new MiembroFamilia("Luis", "60", DateTime.Now.AddYears(-40), true);
             var madre = new MiembroFamilia("Ana", "61", DateTime.Now.AddYears(-39), true);
@@ -172,19 +146,24 @@ namespace ArbolGenealogico.Tests
             var miembros = new List<MiembroFamilia> { padre, madre, hijo };
             var arbol = new ArbolGenealogico();
 
-            var grafo = arbol.GenerarGrafo(miembros);
+            int[,] matriz = arbol.GenerarMatriz(miembros);
 
-            // Buscar relaciones
-            Assert.IsTrue(grafo.Exists(a => a.A == padre && a.B == hijo && a.Peso == 2));
-            Assert.IsTrue(grafo.Exists(a => a.A == madre && a.B == hijo && a.Peso == 2));
+            int iPadre = 0;
+            int iMadre = 1;
+            int iHijo = 2;
+
+            // Padre/Madre → hijo = 2
+            Assert.AreEqual(2, matriz[iPadre, iHijo]);
+            Assert.AreEqual(2, matriz[iMadre, iHijo]);
+
+            // Hijo → padres = 4
+            Assert.AreEqual(4, matriz[iHijo, iPadre]);
+            Assert.AreEqual(4, matriz[iHijo, iMadre]);
         }
 
-
-        // ======================================
-        // 10. PRUEBA: Hermanos en el grafo
-        // ======================================
+        // 10. MATRIZ: Hermanos
         [TestMethod]
-        public void TestGenerarGrafo_Hermanos()
+        public void TestGenerarMatriz_Hermanos()
         {
             var padre = new MiembroFamilia("Juan", "70", DateTime.Now.AddYears(-50), true);
             var hijo1 = new MiembroFamilia("Pedro", "71", DateTime.Now.AddYears(-20), true);
@@ -196,11 +175,14 @@ namespace ArbolGenealogico.Tests
             var miembros = new List<MiembroFamilia> { padre, hijo1, hijo2 };
             var arbol = new ArbolGenealogico();
 
-            var grafo = arbol.GenerarGrafo(miembros);
+            int[,] matriz = arbol.GenerarMatriz(miembros);
 
-            Assert.IsTrue(grafo.Exists(a =>
-                a.Peso == 3 &&
-                ((a.A == hijo1 && a.B == hijo2) || (a.A == hijo2 && a.B == hijo1))));
+            int iPadre = 0;
+            int iH1 = 1;
+            int iH2 = 2;
+
+            Assert.AreEqual(3, matriz[iH1, iH2]);
+            Assert.AreEqual(3, matriz[iH2, iH1]);
         }
     }
 }

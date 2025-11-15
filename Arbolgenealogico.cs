@@ -7,33 +7,78 @@ public class ArbolGenealogico
 {
     public MiembroFamilia? Raiz { get; private set; }
 
-    // ================================
-    // CONSTRUCTOR MEJORADO
-    // ================================
     public ArbolGenealogico(MiembroFamilia? raiz = null)
     {
         Raiz = raiz;
     }
 
-    // ================================
-    // AGREGAR PRIMER NODO DEL ÁRBOL
-    // ================================
+    // =======================================================
+    //  AGREGAR PRIMER NODO DEL ÁRBOL (RAÍZ)
+    // =======================================================
     public bool AgregarPrimerNodo(MiembroFamilia miembro)
     {
         if (miembro == null)
             throw new ArgumentNullException(nameof(miembro));
 
         if (Raiz != null)
-            return false; // Ya existe una raíz
+            return false;
 
         Raiz = miembro;
         return true;
     }
 
-    // ==========================================
-    // BÚSQUEDA POR CÉDULA
-    // ==========================================
-    public bool Contiene(string cedula) => Raiz != null && BuscarPorCedula(Raiz, cedula) != null;
+    // =======================================================
+    //  AGREGAR NODO SEGÚN RELACIÓN: hijo, padre, madre, pareja
+    // =======================================================
+    public bool AgregarNodo(string cedulaReferencia, MiembroFamilia nuevo, string tipoRelacion)
+    {
+        if (nuevo == null)
+            throw new ArgumentNullException(nameof(nuevo));
+
+        if (Raiz == null)
+        {
+            Raiz = nuevo; // si no existe raíz, se vuelve raíz
+            return true;
+        }
+
+        MiembroFamilia? refMiembro = BuscarPorCedula(Raiz, cedulaReferencia);
+        if (refMiembro == null)
+            return false;
+
+        tipoRelacion = tipoRelacion.ToLower();
+
+        switch (tipoRelacion)
+        {
+            case "hijo":
+            case "hija":
+            case "descendiente":
+                refMiembro.Hijos.Add(nuevo);
+                nuevo.Padre = refMiembro.Padre;
+                nuevo.Madre = refMiembro.Madre;
+                return true;
+
+            case "padre":
+                refMiembro.AsignarPadre(nuevo);
+                return true;
+
+            case "madre":
+                refMiembro.AsignarMadre(nuevo);
+                return true;
+
+            case "pareja":
+                refMiembro.AsignarPareja(nuevo);
+                return true;
+
+            default:
+                throw new ArgumentException("Tipo de relación no válido. Use: hijo, padre, madre o pareja.");
+        }
+    }
+
+    // =======================================================
+    //  BÚSQUEDA POR CÉDULA
+    // =======================================================
+    public bool Contiene(string cedula) =>
+        Raiz != null && BuscarPorCedula(Raiz, cedula) != null;
 
     public MiembroFamilia? BuscarPorCedula(MiembroFamilia nodo, string cedula)
     {
@@ -49,9 +94,9 @@ public class ArbolGenealogico
         return null;
     }
 
-    // ==========================================
-    // DETECTAR CICLO EN LA DESCENDENCIA
-    // ==========================================
+    // =======================================================
+    //  DETECTAR CICLOS EN DESCENDENCIA
+    // =======================================================
     public bool DetectarCiclo(MiembroFamilia nodo, HashSet<string> visitados)
     {
         if (visitados.Contains(nodo.Cedula))
@@ -67,21 +112,9 @@ public class ArbolGenealogico
         return false;
     }
 
-    // ==========================================
-    // CLASE AUXILIAR PARA EL GRAFO
-    // ==========================================
-    public class Arista
-    {
-        public MiembroFamilia A { get; set; }
-        public MiembroFamilia B { get; set; }
-        public int Peso { get; set; }
-        public string Tipo { get; set; }
-    }
-
-    // ==========================================
-    // DETECTAR PAREJAS AUTOMÁTICAMENTE
-    // (Regla: mismos hijos = pareja)
-    // ==========================================
+    // =======================================================
+    //  DETECTAR PAREJAS AUTOMÁTICAMENTE POR MISMOS HIJOS
+    // =======================================================
     public void DetectarParejas(List<MiembroFamilia> miembros)
     {
         for (int i = 0; i < miembros.Count; i++)
@@ -106,84 +139,82 @@ public class ArbolGenealogico
         }
     }
 
-    // ==========================================
-    // GENERAR GRAFO COMPLETO CON PESOS
-    // Pareja ↔ pareja = 1
-    // Padre/Madre ↔ hijo = 2
-    // Hermano ↔ hermano = 3
-    // ==========================================
-    public List<Arista> GenerarGrafo(List<MiembroFamilia> miembros)
+    // =======================================================
+    //  GENERAR MATRIZ DE ADYACENCIA CON PESOS
+    //
+    //  REGLAS:
+    //  Padre/Madre → hijo = 2
+    //  Hijo → padre/madre = 4
+    //  Pareja ↔ pareja = 1
+    //  Hermanos ↔ hermanos = 3
+    // =======================================================
+    public int[,] GenerarMatriz(List<MiembroFamilia> miembros)
     {
-        var aristas = new List<Arista>();
+        int n = miembros.Count;
+        int[,] matriz = new int[n, n];
 
-        // ===================================
-        // 1. Padre/Madre ↔ Hijo (peso 2)
-        // ===================================
-        foreach (var miembro in miembros)
-        {
-            foreach (var hijo in miembro.Hijos)
-            {
-                aristas.Add(new Arista
-                {
-                    A = miembro,
-                    B = hijo,
-                    Peso = 2,
-                    Tipo = "Padre-Hijo"
-                });
-            }
-        }
+        // índice rápido por cédula
+        var index = new Dictionary<string, int>();
+        for (int i = 0; i < n; i++)
+            index[miembros[i].Cedula] = i;
 
-        // ===================================
-        // 2. Detectar parejas automáticamente
-        // ===================================
+        // Detectar parejas antes de asignar pesos
         DetectarParejas(miembros);
 
+        // =======================================================
+        // 1. RELACIONES PADRE/MADRE ↔ HIJO
+        // =======================================================
         foreach (var miembro in miembros)
         {
-            if (miembro.Pareja != null)
+            int i = index[miembro.Cedula];
+
+            foreach (var hijo in miembro.Hijos)
             {
-                if (!aristas.Any(a =>
-                    (a.A == miembro && a.B == miembro.Pareja) ||
-                    (a.B == miembro && a.A == miembro.Pareja)))
-                {
-                    aristas.Add(new Arista
-                    {
-                        A = miembro,
-                        B = miembro.Pareja,
-                        Peso = 1,
-                        Tipo = "Pareja"
-                    });
-                }
+                int j = index[hijo.Cedula];
+
+                // ascendente → descendiente
+                matriz[i, j] = 2;
+
+                // descendiente → ascendente
+                matriz[j, i] = 4;
             }
         }
 
-        // ===================================
-        // 3. Hermanos (peso 3)
-        // ===================================
+        // =======================================================
+        // 2. PAREJAS = 1 en ambos sentidos
+        // =======================================================
+        foreach (var miembro in miembros)
+        {
+            if (miembro.Pareja == null)
+                continue;
+
+            int a = index[miembro.Cedula];
+            int b = index[miembro.Pareja.Cedula];
+
+            matriz[a, b] = 1;
+            matriz[b, a] = 1;
+        }
+
+        // =======================================================
+        // 3. HERMANOS = 3 en ambos sentidos
+        // =======================================================
         foreach (var miembro in miembros)
         {
             var hijos = miembro.Hijos;
 
-            for (int i = 0; i < hijos.Count; i++)
+            for (int x = 0; x < hijos.Count; x++)
             {
-                for (int j = i + 1; j < hijos.Count; j++)
+                for (int y = x + 1; y < hijos.Count; y++)
                 {
-                    if (!aristas.Any(a =>
-                        (a.A == hijos[i] && a.B == hijos[j]) ||
-                        (a.A == hijos[j] && a.B == hijos[i])))
-                    {
-                        aristas.Add(new Arista
-                        {
-                            A = hijos[i],
-                            B = hijos[j],
-                            Peso = 3,
-                            Tipo = "Hermanos"
-                        });
-                    }
+                    int i = index[hijos[x].Cedula];
+                    int j = index[hijos[y].Cedula];
+
+                    matriz[i, j] = 3;
+                    matriz[j, i] = 3;
                 }
             }
         }
 
-        return aristas;
+        return matriz;
     }
 }
