@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace ArbolGenealogicoWPF
 {
@@ -9,11 +7,15 @@ namespace ArbolGenealogicoWPF
     {
         private readonly ObservableCollection<Familiar> familiares;
 
-        public MapaWindow(ObservableCollection<Familiar> ListaFamiliares)
+        public MapaWindow(ObservableCollection<Familiar> listaFamiliares)
         {
             InitializeComponent();
-            familiares = ListaFamiliares;
-            // Aquí luego podés dibujar puntos según f.Coordenadas
+            familiares = listaFamiliares;
+
+            // Versión simple mientras dejamos todo compilando:
+            Farthest.Text = $"Hay {familiares.Count} familiares cargados.";
+            Closest.Text = "Integración del mapa y distancias se hará después.";
+            Promedio.Text = "-";
         }
     }
 }
