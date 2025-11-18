@@ -113,7 +113,6 @@ namespace ArbolGenealogicoWPF
                 Coordenadas = CoordenadasInput.Text.Trim(),
                 FechaNacimiento = fechaNacimiento,
                 Edad = edadValida,
-                Parentesco = ParentescoInput.Text.Trim(),
                 RutaFoto = rutaFotoTemporal
             };
 
@@ -171,7 +170,6 @@ namespace ArbolGenealogicoWPF
             FechaInput.Text = "";
             CoordenadasInput.Text = "";
             EdadInput.Text = "";
-            ParentescoInput.Text = "";
             rutaFotoTemporal = null;
             FotoPreview.Source = null;
         }
@@ -242,22 +240,7 @@ namespace ArbolGenealogicoWPF
 
             edadValida = edad;
 
-            // Parentesco solo si es modo 2 (agregar familiar)
-            if (modo == 2)
-            {
-                string parentescoIngresado = ParentescoInput.Text.Trim().ToLower();
-
-                if (string.IsNullOrWhiteSpace(parentescoIngresado) ||
-                    !parentescosValidos.Contains(parentescoIngresado))
-                {
-                    var errorWin = new ErroresWindow(
-                        "Por favor ingrese un parentesco válido: \n Padre, Madre, Esposo, Esposa, Hijo, Hija, Hermano o Hermana."
-                    );
-                    errorWin.Owner = this;
-                    errorWin.ShowDialog();
-                    return false;
-                }
-            }
+            
 
             // Foto obligatoria
             if (rutaFotoTemporal == null || FotoPreview.Source == null)

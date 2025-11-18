@@ -1,33 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.ComponentModel;
 
-namespace ArbolGenealogico.Modelos
+namespace ArbolGenealogicoWPF.Modelos
 {
     public class MiembroFamilia
     {
         // ==========================================
-        // DATOS PERSONALES
+        // DATOS PERSONALES (inmutables)
         // ==========================================
-        public string Nombre { get; set; }
-        public string Cedula { get; set; }
-        public DateTime FechaNacimiento { get; set; }
-        public bool EstaVivo { get; set; }
-        public int Edad { get; private set; }
-
-        // Datos adicionales
-        public string FotografiaRuta { get; set; }
-        public (double Latitud, double Longitud) CoordenadasResidencia { get; set; }
+        public string Nombre { get; private set; }
+        public int Cedula { get; private set; }
+        public DateTime FechaNacimiento { get; private set; }
+        public int? Edad { get; private set; }
+        public bool EstaVivo { get; private set; }
+        public string FotografiaRuta { get; private set; }
+        public (double Latitud, double Longitud) CoordenadasResidencia { get; private set; }
 
         // ==========================================
         // RELACIONES FAMILIARES
         // ==========================================
         public MiembroFamilia? Padre { get; private set; }
         public MiembroFamilia? Madre { get; private set; }
-        public List<MiembroFamilia> Hijos { get; private set; }
-
-        // Pareja detectada o asignada
         public MiembroFamilia? Pareja { get; private set; }
+        public List<MiembroFamilia> Hijos { get; private set; }
+        public List<MiembroFamilia> Hermanos { get; private set; }
 
         // ==========================================
         // CONSTRUCTOR
@@ -35,8 +33,9 @@ namespace ArbolGenealogico.Modelos
         public MiembroFamilia(
             string nombre,
             string cedula,
-            DateTime fechaNacimiento,
             bool estaVivo,
+            int? edad,
+            DateTime fechaNacimiento,
             string fotografiaRuta = "",
             double latitud = 0,
             double longitud = 0)
@@ -50,7 +49,16 @@ namespace ArbolGenealogico.Modelos
             CoordenadasResidencia = (latitud, longitud);
 
             Hijos = new List<MiembroFamilia>();
-            Edad = CalcularEdad();
+            Hermanos = new List<MiembroFamilia>();
+
+            if (EstaVivo)
+            {
+                Edad = CalcularEdad();
+            }
+            else
+            {
+                Edad = edad;
+            }
         }
 
         // ==========================================
@@ -68,7 +76,7 @@ namespace ArbolGenealogico.Modelos
         }
 
         // ==========================================
-        // ASIGNAR PADRE
+        // RELACIONES
         // ==========================================
         public void AsignarPadre(MiembroFamilia padre)
         {
@@ -80,13 +88,11 @@ namespace ArbolGenealogico.Modelos
 
             Padre = padre;
 
-            if (!padre.Hijos.Contains(this))
+            // Usar Any en lugar de Contains
+            if (!padre.Hijos.Any(h => h.Cedula == this.Cedula))
                 padre.Hijos.Add(this);
         }
 
-        // ==========================================
-        // ASIGNAR MADRE
-        // ==========================================
         public void AsignarMadre(MiembroFamilia madre)
         {
             if (madre == null)
@@ -97,25 +103,67 @@ namespace ArbolGenealogico.Modelos
 
             Madre = madre;
 
-            if (!madre.Hijos.Contains(this))
+            // Usar Any en lugar de Contains
+            if (!madre.Hijos.Any(h => h.Cedula == this.Cedula))
                 madre.Hijos.Add(this);
         }
 
-        // ==========================================
-        // ASIGNAR PAREJA
-        // ==========================================
         public void AsignarPareja(MiembroFamilia pareja)
         {
             if (pareja == null)
                 throw new ArgumentNullException(nameof(pareja));
 
+            if (Pareja != null && Pareja != pareja)
+                throw new InvalidOperationException($"{Nombre} ya tiene una pareja asignada.");
+
             Pareja = pareja;
             pareja.Pareja = this;
         }
 
-        // ==========================================
-        // OBTENER HERMANOS (por PADRE y MADRE)
-        // ==========================================
+        public void AsignarHijoComoPadre(MiembroFamilia hijo)
+        {
+            if (hijo == null)
+                throw new ArgumentNullException(nameof(hijo));
+
+            if (Hijos.Any(h => h.Cedula == hijo.Cedula))
+                throw new InvalidOperationException($"{Nombre} ya tiene un hijo con esa cédula.");
+
+            Hijos.Add(hijo);
+
+            // Solo asigna si aún no tiene padre
+            if (hijo.Padre == null)
+                hijo.Padre = this;
+        }
+
+        public void AsignarHijoComoMadre(MiembroFamilia hijo)
+        {
+            if (hijo == null)
+                throw new ArgumentNullException(nameof(hijo));
+
+            if (Hijos.Any(h => h.Cedula == hijo.Cedula))
+                throw new InvalidOperationException($"{Nombre} ya tiene un hijo con esa cédula.");
+
+            Hijos.Add(hijo);
+
+            // Solo asigna si aún no tiene madre
+            if (hijo.Madre == null)
+                hijo.Madre = this;
+        }
+
+        public void AsignarHermano(MiembroFamilia hermano)
+        {
+            if (hermano == null)
+                throw new ArgumentNullException(nameof(hermano));
+
+            if (Hermanos.Any(h => h.Cedula == hermano.Cedula))
+                throw new InvalidOperationException($"{Nombre} ya tiene un hermano con esa cédula.");
+
+            Hermanos.Add(hermano);
+
+            if (!hermano.Hermanos.Any(h => h.Cedula == this.Cedula))
+                hermano.Hermanos.Add(this);
+        }
+
         public List<MiembroFamilia> ObtenerHermanos()
         {
             var hermanos = new HashSet<MiembroFamilia>();
@@ -140,18 +188,6 @@ namespace ArbolGenealogico.Modelos
         }
 
         // ==========================================
-        // MOSTRAR ÁRBOL EN CONSOLA
-        // ==========================================
-        public void MostrarArbol(string prefijo = "")
-        {
-            string estado = EstaVivo ? "Vivo" : "Fallecido";
-            Console.WriteLine($"{prefijo}- {Nombre} ({Edad} años, {estado})");
-
-            foreach (var hijo in Hijos)
-                hijo.MostrarArbol(prefijo + "   ");
-        }
-
-        // ==========================================
         // OBTENER DESCENDIENTES (lista plana)
         // ==========================================
         public List<MiembroFamilia> ObtenerDescendientes()
@@ -165,27 +201,6 @@ namespace ArbolGenealogico.Modelos
             }
 
             return descendientes;
-        }
-
-        // ==========================================
-        // OBTENER TODOS LOS ANCESTROS RAÍZ
-        // (Padre, madre o ambos)
-        // ==========================================
-        public List<MiembroFamilia> ObtenerAncestrosRaiz()
-        {
-            var ancestros = new List<MiembroFamilia>();
-
-            if (Padre != null)
-                ancestros.AddRange(Padre.ObtenerAncestrosRaiz());
-
-            if (Madre != null)
-                ancestros.AddRange(Madre.ObtenerAncestrosRaiz());
-
-            // Si no tiene padres → es raíz en esta línea
-            if (Padre == null && Madre == null)
-                ancestros.Add(this);
-
-            return ancestros.Distinct().ToList();
         }
     }
 }
