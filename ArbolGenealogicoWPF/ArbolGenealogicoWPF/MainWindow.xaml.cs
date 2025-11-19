@@ -10,13 +10,14 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.Globalization;
 
 namespace ArbolGenealogicoWPF
 {
     public partial class MainWindow : WindowBaseLogica
     {
         // Colección principal de familiares (por ahora lista, luego grafo)
-        private ObservableCollection<Familiar> familiares = new ObservableCollection<Familiar>();
+        private ObservableCollection<MiembroFamilia> familiares = new ObservableCollection<MiembroFamilia>();
 
         // Ventanas auxiliares (nullable para evitar warnings)
         private EstadisticasWindow? estadisticasWin;
@@ -29,13 +30,13 @@ namespace ArbolGenealogicoWPF
         private int cedulaValida;
 
         // Fecha de nacimiento validada
-        private DateTime? fechaNacimiento;
+        private DateTime fechaNacimiento;
 
         // Edad validada
         private int edadValida;
 
-        // Lista de parentescos válidos (primer grado de consanguinidad)
-        private readonly string[] parentescosValidos = {"padre", "madre", "esposo", "esposa", "hijo", "hija", "hermano", "hermana"};
+        // Verificación constante del checkbox
+        private bool estaVivo = true;
 
         public MainWindow()
         {
@@ -79,25 +80,56 @@ namespace ArbolGenealogicoWPF
                 }
             }
         }
-        
+
+        private void MuerteCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            estaVivo = false;
+        }
+
+        private void MuerteCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            estaVivo = true;
+        }
+
         private void CrearArbol_Click(object sender, RoutedEventArgs e)
         {
             if (!VerificarDatos(1))
                 return;
 
-            // Crear nuevo familiar
-            var f = new Familiar
-            {
-                Nombre = NombreInput.Text.Trim(),
-                Cedula = cedulaValida,
-                Coordenadas = CoordenadasInput.Text.Trim(),
-                FechaNacimiento = fechaNacimiento,
-                Edad = edadValida,
-                RutaFoto = rutaFotoTemporal
-            };
+            var coords = ParsearCoordenadas(CoordenadasInput.Text.Trim());
 
-            familiares.Add(f);
-            LimpiarFormulario();
+            if (estaVivo)
+            {
+                var f = new MiembroFamilia(
+                    NombreInput.Text.Trim(),
+                    cedulaValida,
+                    estaVivo,
+                    null,
+                    fechaNacimiento,
+                    rutaFotoTemporal,
+                    coords.Latitud,
+                    coords.Longitud
+                );
+
+                familiares.Add(f);
+                LimpiarFormulario();
+            }
+            else
+            {
+                var f = new MiembroFamilia(
+                    NombreInput.Text.Trim(),
+                    cedulaValida,
+                    estaVivo,
+                    edadValida,
+                    fechaNacimiento,
+                    rutaFotoTemporal,
+                    coords.Latitud,
+                    coords.Longitud
+                );
+
+                familiares.Add(f);
+                LimpiarFormulario();
+            }
         }
 
         private void Agregar_Click(object sender, RoutedEventArgs e)
@@ -105,25 +137,46 @@ namespace ArbolGenealogicoWPF
             if (!VerificarDatos(2))
                 return;
 
-            // Crear nuevo familiar
-            var f = new Familiar
-            {
-                Nombre = NombreInput.Text.Trim(),
-                Cedula = cedulaValida,
-                Coordenadas = CoordenadasInput.Text.Trim(),
-                FechaNacimiento = fechaNacimiento,
-                Edad = edadValida,
-                RutaFoto = rutaFotoTemporal
-            };
+            var coords = ParsearCoordenadas(CoordenadasInput.Text.Trim());
 
-            familiares.Add(f);
-            LimpiarFormulario();
+            if (estaVivo)
+            {
+                var f = new MiembroFamilia(
+                    NombreInput.Text.Trim(),
+                    cedulaValida,
+                    estaVivo,
+                    null,
+                    fechaNacimiento,
+                    rutaFotoTemporal,
+                    coords.Latitud,
+                    coords.Longitud
+                );
+
+                familiares.Add(f);
+                LimpiarFormulario();
+            }
+            else
+            {
+                var f = new MiembroFamilia(
+                    NombreInput.Text.Trim(),
+                    cedulaValida,
+                    estaVivo,
+                    edadValida,
+                    fechaNacimiento,
+                    rutaFotoTemporal,
+                    coords.Latitud,
+                    coords.Longitud
+                );
+
+                familiares.Add(f);
+                LimpiarFormulario();
+            }
         }
 
         // Eliminar familiar seleccionado
         private void Eliminar_Click(object sender, RoutedEventArgs e)
         {
-            if (FamiliaresList.SelectedItem is Familiar sel)
+            if (FamiliaresList.SelectedItem is MiembroFamilia sel)
             {
                 familiares.Remove(sel);
             }
@@ -172,6 +225,9 @@ namespace ArbolGenealogicoWPF
             EdadInput.Text = "";
             rutaFotoTemporal = null;
             FotoPreview.Source = null;
+            ParentescoComboBox.SelectedIndex = -1; 
+            ParentescoComboBox.Text = string.Empty;
+            MuerteCheckBox.IsChecked = false;
         }
 
         private bool VerificarDatos(int modo)
@@ -229,19 +285,34 @@ namespace ArbolGenealogicoWPF
                 return false;
             }
 
-            // Edad obligatoria y válida
-            if (string.IsNullOrWhiteSpace(EdadInput.Text) || !int.TryParse(EdadInput.Text, out int edad) || edad <= 0)
+            // Validar edad solo si el CheckBox está marcado
+            if (!estaVivo)
             {
-                var errorWin = new ErroresWindow("Por favor ingrese una edad válida.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                if (string.IsNullOrWhiteSpace(EdadInput.Text) ||
+                    !int.TryParse(EdadInput.Text, out int edad) ||
+                    edad <= 0)
+                {
+                    var errorWin = new ErroresWindow("Por favor ingrese una edad válida.");
+                    errorWin.Owner = this;
+                    errorWin.ShowDialog();
+                    return false;
+                }
+
+                edadValida = edad;
             }
 
-            edadValida = edad;
-
+            // Validar que haya un parentesco seleccionado si se desea agregar al seleccionado
+            if (modo == 2)
+            {
+                if (ParentescoComboBox.SelectedIndex == -1)
+                {
+                    var errorWin = new ErroresWindow("Por favor seleccione un parentesco.");
+                    errorWin.Owner = this;
+                    errorWin.ShowDialog();
+                    return false;
+                }
+            }
             
-
             // Foto obligatoria
             if (rutaFotoTemporal == null || FotoPreview.Source == null)
             {
@@ -252,6 +323,25 @@ namespace ArbolGenealogicoWPF
             }
 
             return true;
+        }
+
+        // Sujeto a cambios según la lógica del otro grafo de distancias
+        private (double Latitud, double Longitud) ParsearCoordenadas(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return (0, 0);
+
+            var partes = input.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (partes.Length != 2)
+                return (0, 0);
+
+            if (double.TryParse(partes[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double lat) &&
+                double.TryParse(partes[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double lon))
+            {
+                return (lat, lon);
+            }
+
+            return (0, 0);
         }
     }
 }

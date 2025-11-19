@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
 
-namespace ArbolGenealogicoWPF.Modelos
+namespace ArbolGenealogicoWPF
 {
     public class MiembroFamilia
     {
@@ -32,7 +32,7 @@ namespace ArbolGenealogicoWPF.Modelos
         // ==========================================
         public MiembroFamilia(
             string nombre,
-            string cedula,
+            int cedula,
             bool estaVivo,
             int? edad,
             DateTime fechaNacimiento,
@@ -88,7 +88,6 @@ namespace ArbolGenealogicoWPF.Modelos
 
             Padre = padre;
 
-            // Usar Any en lugar de Contains
             if (!padre.Hijos.Any(h => h.Cedula == this.Cedula))
                 padre.Hijos.Add(this);
         }
@@ -103,7 +102,6 @@ namespace ArbolGenealogicoWPF.Modelos
 
             Madre = madre;
 
-            // Usar Any en lugar de Contains
             if (!madre.Hijos.Any(h => h.Cedula == this.Cedula))
                 madre.Hijos.Add(this);
         }
@@ -115,6 +113,9 @@ namespace ArbolGenealogicoWPF.Modelos
 
             if (Pareja != null && Pareja != pareja)
                 throw new InvalidOperationException($"{Nombre} ya tiene una pareja asignada.");
+
+            if (pareja.Pareja != null && pareja.Pareja != this)
+                throw new InvalidOperationException($"{pareja.Nombre} ya tiene otra pareja asignada.");
 
             Pareja = pareja;
             pareja.Pareja = this;
@@ -128,11 +129,11 @@ namespace ArbolGenealogicoWPF.Modelos
             if (Hijos.Any(h => h.Cedula == hijo.Cedula))
                 throw new InvalidOperationException($"{Nombre} ya tiene un hijo con esa cédula.");
 
-            Hijos.Add(hijo);
+            if (hijo.Padre != null && hijo.Padre != this)
+                throw new InvalidOperationException("El hijo ya tiene otro padre asignado.");
 
-            // Solo asigna si aún no tiene padre
-            if (hijo.Padre == null)
-                hijo.Padre = this;
+            Hijos.Add(hijo);
+            hijo.Padre = this;
         }
 
         public void AsignarHijoComoMadre(MiembroFamilia hijo)
@@ -143,11 +144,11 @@ namespace ArbolGenealogicoWPF.Modelos
             if (Hijos.Any(h => h.Cedula == hijo.Cedula))
                 throw new InvalidOperationException($"{Nombre} ya tiene un hijo con esa cédula.");
 
-            Hijos.Add(hijo);
+            if (hijo.Madre != null && hijo.Madre != this)
+                throw new InvalidOperationException("El hijo ya tiene otra madre asignada.");
 
-            // Solo asigna si aún no tiene madre
-            if (hijo.Madre == null)
-                hijo.Madre = this;
+            Hijos.Add(hijo);
+            hijo.Madre = this;
         }
 
         public void AsignarHermano(MiembroFamilia hermano)
@@ -164,43 +165,52 @@ namespace ArbolGenealogicoWPF.Modelos
                 hermano.Hermanos.Add(this);
         }
 
-        public List<MiembroFamilia> ObtenerHermanos()
+        // ==========================================
+        // Métodos auxiliares
+        // ==========================================
+        public void LigarHermanos()
         {
-            var hermanos = new HashSet<MiembroFamilia>();
+            // Elegir la fuente: primero padre, si no hay, madre
+            var fuente = Padre != null ? Padre.Hijos : Madre?.Hijos;
+            if (fuente == null) return;
 
-            // Hermanos por parte del padre
-            if (Padre != null)
+            foreach (var h in fuente)
             {
-                foreach (var h in Padre.Hijos)
-                    if (h != this)
-                        hermanos.Add(h);
-            }
+                if (h.Cedula == this.Cedula)
+                    continue;
 
-            // Hermanos por parte de la madre
-            if (Madre != null)
-            {
-                foreach (var h in Madre.Hijos)
-                    if (h != this)
-                        hermanos.Add(h);
-            }
+                // Agregar a mi lista si no existe por cédula
+                if (!Hermanos.Any(x => x.Cedula == h.Cedula))
+                    Hermanos.Add(h);
 
-            return hermanos.ToList();
+                // Reciprocidad: asegurar que el otro también me tenga
+                if (!h.Hermanos.Any(x => x.Cedula == this.Cedula))
+                    h.Hermanos.Add(this);
+            }
         }
 
-        // ==========================================
-        // OBTENER DESCENDIENTES (lista plana)
-        // ==========================================
-        public List<MiembroFamilia> ObtenerDescendientes()
+        public void LigarHijosConPadre(MiembroFamilia madre, MiembroFamilia padre)
         {
-            var descendientes = new List<MiembroFamilia>();
-
-            foreach (var hijo in Hijos)
+            foreach (var hijo in padre.Hijos)
             {
-                descendientes.Add(hijo);
-                descendientes.AddRange(hijo.ObtenerDescendientes());
-            }
+                if (!madre.Hijos.Any(h => h.Cedula == hijo.Cedula))
+                    madre.Hijos.Add(hijo);
 
-            return descendientes;
+                if (hijo.Madre != madre)
+                    hijo.Madre = madre;
+            }
+        }
+
+        public void LigarHijosConMadre(MiembroFamilia madre, MiembroFamilia padre)
+        {
+            foreach (var hijo in madre.Hijos)
+            {
+                if (!padre.Hijos.Any(h => h.Cedula == hijo.Cedula))
+                    padre.Hijos.Add(hijo);
+
+                if (hijo.Padre != padre)
+                    hijo.Padre = padre;
+            }
         }
     }
 }

@@ -412,7 +412,8 @@
 					<TextBlock Grid.Row="0" Grid.Column="0" Text="¿La persona falleció?" FontSize="14"
 							   VerticalAlignment="Center" Margin="4"/>
 					<CheckBox Grid.Row="1" Grid.Column="0" x:Name="MuerteCheckBox" Content="" Margin="4" 
-							  VerticalAlignment="Center" HorizontalAlignment="Center"/>
+							  VerticalAlignment="Center" HorizontalAlignment="Center"
+							  Checked="MuerteCheckBox_Checked" Unchecked="MuerteCheckBox_Unchecked"/>
 
 					<TextBlock Grid.Row="0" Grid.Column="1" Text="Edad que tenía al fallecer" FontSize="14"
 							   VerticalAlignment="Center" Margin="4"/>
@@ -427,7 +428,7 @@
 							   FontWeight="Bold"
 							   Margin="0,0,0,6"/>
 
-					<ComboBox Style="{StaticResource ComboReal}" ItemContainerStyle="{StaticResource ComboItemEstilo}">
+					<ComboBox x:Name="ParentescoComboBox" Style="{StaticResource ComboReal}" ItemContainerStyle="{StaticResource ComboItemEstilo}">
 						<ComboBoxItem>Padre</ComboBoxItem>
 						<ComboBoxItem>Madre</ComboBoxItem>
 						<ComboBoxItem>Hij@ de padre</ComboBoxItem>
