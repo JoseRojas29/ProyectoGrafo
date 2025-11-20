@@ -5,6 +5,10 @@ using System.ComponentModel;
 
 namespace ArbolGenealogicoWPF
 {
+    /// <summary>
+    /// Clase que define a los nodos del grafo del árbol genealógico
+    /// El grafo vive en los nodos porque cada nodo conoce a sus relaciones mediante listas de adyacencia
+    /// </summary>
     public class MiembroFamilia
     {
         // ==========================================
@@ -76,7 +80,7 @@ namespace ArbolGenealogicoWPF
         }
 
         // ==========================================
-        // RELACIONES
+        // RELACIONES INICIALES
         // ==========================================
         public void AsignarPadre(MiembroFamilia padre)
         {
@@ -87,9 +91,7 @@ namespace ArbolGenealogicoWPF
                 throw new InvalidOperationException($"{Nombre} ya tiene un padre asignado.");
 
             Padre = padre;
-
-            if (!padre.Hijos.Any(h => h.Cedula == this.Cedula))
-                padre.Hijos.Add(this);
+            padre.Hijos.Add(this);
         }
 
         public void AsignarMadre(MiembroFamilia madre)
@@ -101,9 +103,7 @@ namespace ArbolGenealogicoWPF
                 throw new InvalidOperationException($"{Nombre} ya tiene una madre asignada.");
 
             Madre = madre;
-
-            if (!madre.Hijos.Any(h => h.Cedula == this.Cedula))
-                madre.Hijos.Add(this);
+            madre.Hijos.Add(this);
         }
 
         public void AsignarPareja(MiembroFamilia pareja)
@@ -126,9 +126,6 @@ namespace ArbolGenealogicoWPF
             if (hijo == null)
                 throw new ArgumentNullException(nameof(hijo));
 
-            if (Hijos.Any(h => h.Cedula == hijo.Cedula))
-                throw new InvalidOperationException($"{Nombre} ya tiene un hijo con esa cédula.");
-
             if (hijo.Padre != null && hijo.Padre != this)
                 throw new InvalidOperationException("El hijo ya tiene otro padre asignado.");
 
@@ -140,9 +137,6 @@ namespace ArbolGenealogicoWPF
         {
             if (hijo == null)
                 throw new ArgumentNullException(nameof(hijo));
-
-            if (Hijos.Any(h => h.Cedula == hijo.Cedula))
-                throw new InvalidOperationException($"{Nombre} ya tiene un hijo con esa cédula.");
 
             if (hijo.Madre != null && hijo.Madre != this)
                 throw new InvalidOperationException("El hijo ya tiene otra madre asignada.");
@@ -156,17 +150,12 @@ namespace ArbolGenealogicoWPF
             if (hermano == null)
                 throw new ArgumentNullException(nameof(hermano));
 
-            if (Hermanos.Any(h => h.Cedula == hermano.Cedula))
-                throw new InvalidOperationException($"{Nombre} ya tiene un hermano con esa cédula.");
-
             Hermanos.Add(hermano);
-
-            if (!hermano.Hermanos.Any(h => h.Cedula == this.Cedula))
-                hermano.Hermanos.Add(this);
+            hermano.Hermanos.Add(this);
         }
 
         // ==========================================
-        // Métodos auxiliares
+        // CONEXIONES FAMILIARES
         // ==========================================
         public void LigarHermanos()
         {

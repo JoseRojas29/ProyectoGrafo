@@ -38,6 +38,9 @@ namespace ArbolGenealogicoWPF
         // Verificación constante del checkbox
         private bool estaVivo = true;
 
+        // Diccionario para evitar duplicados
+        private Dictionary<int, MiembroFamilia> indicePorCedula = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -112,6 +115,7 @@ namespace ArbolGenealogicoWPF
                 );
 
                 familiares.Add(f);
+                indicePorCedula[cedulaValida] = f;
                 LimpiarFormulario();
             }
             else
@@ -128,6 +132,7 @@ namespace ArbolGenealogicoWPF
                 );
 
                 familiares.Add(f);
+                indicePorCedula[cedulaValida] = f;
                 LimpiarFormulario();
             }
         }
@@ -153,6 +158,7 @@ namespace ArbolGenealogicoWPF
                 );
 
                 familiares.Add(f);
+                indicePorCedula[cedulaValida] = f;
                 LimpiarFormulario();
             }
             else
@@ -169,6 +175,7 @@ namespace ArbolGenealogicoWPF
                 );
 
                 familiares.Add(f);
+                indicePorCedula[cedulaValida] = f;
                 LimpiarFormulario();
             }
         }
@@ -265,10 +272,28 @@ namespace ArbolGenealogicoWPF
             // Guardar valor ya convertido para asignarlo
             cedulaValida = cedulaNumerica;
 
+            // Verificar duplicados usando la cédula
+            if (indicePorCedula.ContainsKey(cedulaValida))
+            {
+                var errorWin = new ErroresWindow("Ya existe un miembro con esa cédula.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
             // Fecha obligatoria y válida
             if (string.IsNullOrWhiteSpace(FechaInput.Text) || !DateTime.TryParse(FechaInput.Text, out DateTime fechaValidada))
             {
                 var errorWin = new ErroresWindow("Por favor ingrese una fecha válida.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return false;
+            }
+
+            // No permitir fechas futuras
+            if (fechaValidada > DateTime.Now)
+            {
+                var errorWin = new ErroresWindow("La fecha de nacimiento no puede ser en el futuro.");
                 errorWin.Owner = this;
                 errorWin.ShowDialog();
                 return false;

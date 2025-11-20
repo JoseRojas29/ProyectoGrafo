@@ -392,8 +392,8 @@
 				<TextBlock Text="Cédula" FontSize="18" Margin="0,0,0,8"/>
 				<TextBox x:Name="CedulaInput" Margin="0,0,0,8" ToolTip="Cédula 0-0000-0000"/>
 
-				<TextBlock Text="Fecha de Nacimiento (mm/dd/aaaa)" Margin="0,0,0,8"/>
-				<TextBox x:Name="FechaInput" Margin="0,0,0,8" ToolTip="Fecha de nacimiento (mm/dd/aaaa)"/>
+				<TextBlock Text="Fecha de Nacimiento (dd/mm/aaaa)" Margin="0,0,0,8"/>
+				<TextBox x:Name="FechaInput" Margin="0,0,0,8" ToolTip="Fecha de nacimiento (dd/mm/aaaa)"/>
 
 				<TextBlock Text="Coordenadas de residencia (x,y)" Margin="0,0,0,8"/>
 				<TextBox x:Name="CoordenadasInput" Margin="0,0,0,8" ToolTip="(ej: 9.93,84.08)"/>
@@ -459,13 +459,27 @@
 
 			<!-- Lista de familiares (Ahorita se va, porque son los nodos realmente, y group box pareciera que también) -->
 			<GroupBox Grid.Column="1" Header="Familiares"
-			  Background="#111111" Foreground="#00FFFF"
-			  BorderBrush="#00FFFF" BorderThickness="2">
+					  Background="#111111" Foreground="#00FFFF"
+					  BorderBrush="#00FFFF" BorderThickness="2">
 				<ListView x:Name="FamiliaresList" SelectionMode="Single"
-						  Background="#111111" Foreground="#00FFFF" BorderBrush="#00FFFF" BorderThickness="1"
+						  Background="#111111" Foreground="#00FFFF"
+						  BorderBrush="#00FFFF" BorderThickness="1"
 						  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<ListView.View>
+						<GridView>
+							<GridViewColumn Header="Nombre" DisplayMemberBinding="{Binding Nombre}" Width="120"/>
+							<GridViewColumn Header="Cédula" DisplayMemberBinding="{Binding Cedula}" Width="100"/>
+							<GridViewColumn Header="Edad" DisplayMemberBinding="{Binding Edad}" Width="60"/>
+							<GridViewColumn Header="Vivo" DisplayMemberBinding="{Binding EstaVivo}" Width="60"/>
+							<GridViewColumn Header="Nacimiento" DisplayMemberBinding="{Binding FechaNacimiento}" Width="120"/>
+							<GridViewColumn Header="Foto" DisplayMemberBinding="{Binding FotografiaRuta}" Width="150"/>
+							<GridViewColumn Header="Latitud" DisplayMemberBinding="{Binding CoordenadasResidencia.Latitud}" Width="80"/>
+							<GridViewColumn Header="Longitud" DisplayMemberBinding="{Binding CoordenadasResidencia.Longitud}" Width="80"/>
+						</GridView>
+					</ListView.View>
 				</ListView>
 			</GroupBox>
+
 
 		</Grid>
 	</Grid>
