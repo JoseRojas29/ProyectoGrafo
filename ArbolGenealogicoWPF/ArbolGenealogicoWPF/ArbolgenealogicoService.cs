@@ -10,36 +10,19 @@ namespace ArbolGenealogicoWPF
     /// </summary>
     public static class ArbolGenealogicoService
     {
-        // =======================================================
-        //  AGREGAR PRIMER NODO DEL ÁRBOL (RAÍZ)
-        // =======================================================
-        public bool AgregarPrimerNodo(MiembroFamilia miembro)
+        public static bool AgregarPrimerNodo(MiembroFamilia miembro)
         {
             NuevoNodo = miembro;
             return true;
         }
 
-        // =======================================================
-        //  AGREGAR NODO SEGÚN RELACIÓN: hijo, padre, madre, pareja
-        // =======================================================
-        public bool AgregarNodo(string cedulaReferencia, MiembroFamilia nuevo, string tipoRelacion)
+        // Agregar nodo según relación (ComboBox)
+        public static bool AgregarNodo(MiembroFamilia seleccionado, MiembroFamilia nuevo, int relacion)
         {
             if (nuevo == null)
                 throw new ArgumentNullException(nameof(nuevo));
 
-            if (Raiz == null)
-            {
-                Raiz = nuevo; // si no existe raíz, se vuelve raíz
-                return true;
-            }
-
-            MiembroFamilia? refMiembro = BuscarPorCedula(Raiz, cedulaReferencia);
-            if (refMiembro == null)
-                return false;
-
-            tipoRelacion = tipoRelacion.ToLower();
-
-            switch (tipoRelacion)
+            switch (relacion)
             {
                 case "hijo":
                 case "hija":
@@ -60,54 +43,13 @@ namespace ArbolGenealogicoWPF
                 case "pareja":
                     refMiembro.AsignarPareja(nuevo);
                     return true;
-
-                default:
-                    throw new ArgumentException("Tipo de relación no válido. Use: hijo, padre, madre o pareja.");
             }
-        }
-
-        // =======================================================
-        //  BÚSQUEDA POR CÉDULA
-        // =======================================================
-        public bool Contiene(string cedula) =>
-            Raiz != null && BuscarPorCedula(Raiz, cedula) != null;
-
-        public MiembroFamilia? BuscarPorCedula(MiembroFamilia nodo, string cedula)
-        {
-            if (nodo.Cedula == cedula)
-                return nodo;
-
-            foreach (var hijo in nodo.Hijos)
-            {
-                var encontrado = BuscarPorCedula(hijo, cedula);
-                if (encontrado != null)
-                    return encontrado;
-            }
-            return null;
-        }
-
-        // =======================================================
-        //  DETECTAR CICLOS EN DESCENDENCIA
-        // =======================================================
-        public bool DetectarCiclo(MiembroFamilia nodo, HashSet<string> visitados)
-        {
-            if (visitados.Contains(nodo.Cedula))
-                return true;
-
-            visitados.Add(nodo.Cedula);
-
-            foreach (var hijo in nodo.Hijos)
-            {
-                if (DetectarCiclo(hijo, new HashSet<string>(visitados)))
-                    return true;
-            }
-            return false;
         }
 
         // =======================================================
         //  DETECTAR PAREJAS AUTOMÁTICAMENTE POR MISMOS HIJOS
         // =======================================================
-        public void DetectarParejas(List<MiembroFamilia> miembros)
+        public static void DetectarParejas(List<MiembroFamilia> miembros)
         {
             for (int i = 0; i < miembros.Count; i++)
             {
@@ -140,7 +82,7 @@ namespace ArbolGenealogicoWPF
         //  Pareja ↔ pareja = 1
         //  Hermanos ↔ hermanos = 3
         // =======================================================
-        public int[,] GenerarMatriz(List<MiembroFamilia> miembros)
+        public static int[,] GenerarMatriz(List<MiembroFamilia> miembros)
         {
             int n = miembros.Count;
             int[,] matriz = new int[n, n];
