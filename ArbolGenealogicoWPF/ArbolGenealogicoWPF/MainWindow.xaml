@@ -383,104 +383,103 @@
 			</Grid.ColumnDefinitions>
 
 			<!-- Datos del familiar -->
-			<StackPanel Grid.Column="0" Margin="0,0,16,0">
-				<TextBlock Text="Ingreso de familiar" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
+			<ScrollViewer Grid.Column="0"
+						  VerticalScrollBarVisibility="Auto"
+						  HorizontalScrollBarVisibility="Disabled"
+						  Margin="0,0,16,0">
+				<StackPanel>
+					<TextBlock Text="Ingreso de familiar" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
 
-				<TextBlock Text="Nombre Completo" Margin="0,0,0,8"/>
-				<TextBox x:Name="NombreInput" Margin="0,0,0,8" ToolTip="Nombre completo"/>
+					<TextBlock Text="Nombre Completo" Margin="0,0,0,8"/>
+					<TextBox x:Name="NombreInput" Margin="0,0,0,8" ToolTip="Nombre completo"/>
 
-				<TextBlock Text="Cédula" FontSize="18" Margin="0,0,0,8"/>
-				<TextBox x:Name="CedulaInput" Margin="0,0,0,8" ToolTip="Cédula 0-0000-0000"/>
+					<TextBlock Text="Cédula" FontSize="18" Margin="0,0,0,8"/>
+					<TextBox x:Name="CedulaInput" Margin="0,0,0,8" ToolTip="Cédula 0-0000-0000"/>
 
-				<TextBlock Text="Fecha de Nacimiento (dd/mm/aaaa)" Margin="0,0,0,8"/>
-				<TextBox x:Name="FechaInput" Margin="0,0,0,8" ToolTip="Fecha de nacimiento (dd/mm/aaaa)"/>
+					<TextBlock Text="Fecha de Nacimiento (dd/mm/aaaa)" Margin="0,0,0,8"/>
+					<TextBox x:Name="FechaInput" Margin="0,0,0,8" ToolTip="Fecha de nacimiento (dd/mm/aaaa)"/>
 
-				<TextBlock Text="Coordenadas de residencia (x,y)" Margin="0,0,0,8"/>
-				<TextBox x:Name="CoordenadasInput" Margin="0,0,0,8" ToolTip="(ej: 9.93,84.08)"/>
+					<TextBlock Text="Coordenadas de residencia (x,y)" Margin="0,0,0,8"/>
+					<TextBox x:Name="CoordenadasInput" Margin="0,0,0,8" ToolTip="(ej: 9.93,84.08)"/>
 
-				<!-- Contenedor de grid para saber si la persona está viva y obtener su edad -->
-				<Grid Margin="8">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="Auto"/>
-					</Grid.RowDefinitions>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>
+					<!-- Contenedor de grid para saber si la persona está viva y obtener su edad -->
+					<Grid Margin="8">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="*"/>
+						</Grid.ColumnDefinitions>
 
-					<TextBlock Grid.Row="0" Grid.Column="0" Text="¿La persona falleció?" FontSize="14"
-							   VerticalAlignment="Center" Margin="4"/>
-					<CheckBox Grid.Row="1" Grid.Column="0" x:Name="MuerteCheckBox" Content="" Margin="4" 
-							  VerticalAlignment="Center" HorizontalAlignment="Center"
-							  Checked="MuerteCheckBox_Checked" Unchecked="MuerteCheckBox_Unchecked"/>
+						<TextBlock Grid.Row="0" Grid.Column="0" Text="¿La persona falleció?" FontSize="14"
+								   VerticalAlignment="Center" Margin="4"/>
+						<CheckBox Grid.Row="1" Grid.Column="0" x:Name="MuerteCheckBox" Content="" Margin="4" 
+								  VerticalAlignment="Center" HorizontalAlignment="Center"
+								  Checked="MuerteCheckBox_Checked" Unchecked="MuerteCheckBox_Unchecked"/>
 
-					<TextBlock Grid.Row="0" Grid.Column="1" Text="Edad que tenía al fallecer" FontSize="14"
-							   VerticalAlignment="Center" Margin="4"/>
-					<TextBox Grid.Row="1" Grid.Column="1" x:Name="EdadInput" 
-							 Margin="4" IsEnabled="{Binding IsChecked, ElementName=MuerteCheckBox}"
-							 ToolTip="Este campo se habilita únicamente si la persona está marcada como fallecida"/>
+						<TextBlock Grid.Row="0" Grid.Column="1" Text="Edad que tenía al fallecer" FontSize="14"
+								   VerticalAlignment="Center" Margin="4"/>
+						<TextBox Grid.Row="1" Grid.Column="1" x:Name="EdadInput" 
+								 Margin="4" IsEnabled="{Binding IsChecked, ElementName=MuerteCheckBox}"
+								 ToolTip="Este campo se habilita únicamente si la persona está marcada como fallecida"/>
+					</Grid>
+
+					<!-- El parentesco es obligatorio al agregar un nodo respecto a otro, mas no para la "raíz" -->
+					<StackPanel Margin="8">
+						<TextBlock Text="Seleccione el parentesco:"
+								   FontWeight="Bold"
+								   Margin="0,0,0,6"/>
+
+						<ComboBox x:Name="ParentescoComboBox" Style="{StaticResource ComboReal}" ItemContainerStyle="{StaticResource ComboItemEstilo}">
+							<ComboBoxItem>Padre</ComboBoxItem>
+							<ComboBoxItem>Madre</ComboBoxItem>
+							<ComboBoxItem>Hij@ de padre</ComboBoxItem>
+							<ComboBoxItem>Hij@ de madre</ComboBoxItem>
+							<ComboBoxItem>Pareja</ComboBoxItem>
+							<ComboBoxItem>Herman@</ComboBoxItem>
+						</ComboBox>
+
+					</StackPanel>
+
+					<!-- Contenedor horizontal para botón y preview de foto -->
+					<StackPanel Orientation="Horizontal" Margin="0,4,0,4" VerticalAlignment="Center">
+						<Button x:Name="SeleccionarFotoBtn" Content="Seleccionar foto" Click="SeleccionarFoto_Click" Width="200" Height="60"/>
+						<Border Width="80" Height="80" Background="#222" CornerRadius="4" BorderBrush="#444" BorderThickness="1">
+							<Image x:Name="FotoPreview" Stretch="UniformToFill"/>
+						</Border>
+					</StackPanel>
+
+					<!-- Botones de acciones -->
+					<StackPanel Orientation="Vertical" Margin="0,16,0,0">
+						<Button Content="Crear árbol" Click="CrearArbol_Click" Padding="8,4"/>
+						<Button Content="Agregar respecto al seleccionado" Click="Agregar_Click" Padding="8,4"/>
+						<Button Content="Eliminar seleccionado" Click="Eliminar_Click" Padding="8,4"/>
+						<Button Content="Mapa" Click="AbrirMapa_Click" Padding="8,4"/>
+						<Button Content="Estadísticas" Click="AbrirEstadisticas_Click" Padding="8,4"/>
+					</StackPanel>
+				</StackPanel>
+			</ScrollViewer>
+
+			<!-- Canvas para dibujar el árbol + ListView oculto -->
+			<ScrollViewer Grid.Column="1"
+						  HorizontalScrollBarVisibility="Auto"
+						  VerticalScrollBarVisibility="Auto">
+
+				<Grid>
+					<!-- ListView oculto para manejar selección -->
+					<ListView x:Name="FamiliaresList"
+							  ItemsSource="{Binding familiares}"
+							  Visibility="Collapsed"/>
+
+					<!-- Canvas visible para dibujar el árbol -->
+					<Canvas x:Name="ArbolCanvas"
+							Background="White"
+							MinWidth="2000"
+							MinHeight="2000"/>
 				</Grid>
-
-				<!-- El parentesco es obligatorio al agregar un nodo respecto a otro, mas no para la "raíz" -->
-				<StackPanel Margin="8">
-					<TextBlock Text="Seleccione el parentesco:"
-							   FontWeight="Bold"
-							   Margin="0,0,0,6"/>
-
-					<ComboBox x:Name="ParentescoComboBox" Style="{StaticResource ComboReal}" ItemContainerStyle="{StaticResource ComboItemEstilo}">
-						<ComboBoxItem>Padre</ComboBoxItem>
-						<ComboBoxItem>Madre</ComboBoxItem>
-						<ComboBoxItem>Hij@ de padre</ComboBoxItem>
-						<ComboBoxItem>Hij@ de madre</ComboBoxItem>
-						<ComboBoxItem>Pareja</ComboBoxItem>
-						<ComboBoxItem>Herman@</ComboBoxItem>
-					</ComboBox>
-
-				</StackPanel>
-
-				<!-- Contenedor horizontal para botón y preview de foto -->
-				<StackPanel Orientation="Horizontal" Margin="0,4,0,4" VerticalAlignment="Center">
-					<Button x:Name="SeleccionarFotoBtn" Content="Seleccionar foto" Click="SeleccionarFoto_Click" Width="200" Height="60"/>
-					<Border Width="80" Height="80" Background="#222" CornerRadius="4" BorderBrush="#444" BorderThickness="1">
-						<Image x:Name="FotoPreview" Stretch="UniformToFill"/>
-					</Border>
-				</StackPanel>
-
-				<!-- Botones de acciones -->
-				<StackPanel Orientation="Vertical" Margin="0,16,0,0">
-					<Button Content="Crear árbol" Click="CrearArbol_Click" Padding="8,4"/>
-					<Button Content="Agregar respecto al seleccionado" Click="Agregar_Click" Padding="8,4"/>
-					<Button Content="Eliminar seleccionado" Click="Eliminar_Click" Padding="8,4"/>
-					<Button Content="Mapa" Click="AbrirMapa_Click" Padding="8,4"/>
-					<Button Content="Estadísticas" Click="AbrirEstadisticas_Click" Padding="8,4"/>
-				</StackPanel>
-			</StackPanel>
-
-			<!-- Lista de familiares (Ahorita se va, porque son los nodos realmente, y group box pareciera que también) -->
-			<GroupBox Grid.Column="1" Header="Familiares"
-					  Background="#111111" Foreground="#00FFFF"
-					  BorderBrush="#00FFFF" BorderThickness="2">
-				<ListView x:Name="FamiliaresList" SelectionMode="Single"
-						  Background="#111111" Foreground="#00FFFF"
-						  BorderBrush="#00FFFF" BorderThickness="1"
-						  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-					<ListView.View>
-						<GridView>
-							<GridViewColumn Header="Nombre" DisplayMemberBinding="{Binding Nombre}" Width="120"/>
-							<GridViewColumn Header="Cédula" DisplayMemberBinding="{Binding Cedula}" Width="100"/>
-							<GridViewColumn Header="Edad" DisplayMemberBinding="{Binding Edad}" Width="60"/>
-							<GridViewColumn Header="Vivo" DisplayMemberBinding="{Binding EstaVivo}" Width="60"/>
-							<GridViewColumn Header="Nacimiento" DisplayMemberBinding="{Binding FechaNacimiento}" Width="120"/>
-							<GridViewColumn Header="Foto" DisplayMemberBinding="{Binding FotografiaRuta}" Width="150"/>
-							<GridViewColumn Header="Latitud" DisplayMemberBinding="{Binding CoordenadasResidencia.Latitud}" Width="80"/>
-							<GridViewColumn Header="Longitud" DisplayMemberBinding="{Binding CoordenadasResidencia.Longitud}" Width="80"/>
-						</GridView>
-					</ListView.View>
-				</ListView>
-			</GroupBox>
-
-
+			</ScrollViewer>
 		</Grid>
 	</Grid>
 
