@@ -1,116 +1,148 @@
 ﻿<local:WindowBaseLogica x:Class="ArbolGenealogicoWPF.MapaWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:local="clr-namespace:ArbolGenealogicoWPF"
-        WindowStartupLocation="CenterOwner"
+        xmlns:local="clr-namespace:ArbolGenealogicoWPF"
+        WindowStartupLocation="CenterOwner" 
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-		FontFamily="pack://application:,,,/Fonts/#Orbitron">
+        FontFamily="pack://application:,,,/Fonts/#Orbitron">
 
-	<Window.Resources>
-		<!-- TextBlock (Texto de solo lectura) -->
-		<Style TargetType="TextBlock">
-			<Setter Property="Foreground" Value="#FF6F00"/>
-			<Setter Property="FontSize" Value="20"/>
-			<Setter Property="FontWeight" Value="SemiBold"/>
-		</Style>
+    <Window.Resources>
+        <!-- TextBlock (Texto de solo lectura) -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FF6F00"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
 
-		<!-- Button (Todos los botones) -->
-		<Style TargetType="Button">
-			<Setter Property="FontWeight" Value="SemiBold"/>
-			<Setter Property="FontSize" Value="16"/>
-			<Setter Property="Background" Value="#1A0033"/>
-			<Setter Property="Foreground" Value="#FFAB40"/>
-			<Setter Property="BorderBrush" Value="#FF9100"/>
-			<Setter Property="Padding" Value="12,6"/>
-			<Setter Property="Margin" Value="0,0,12,8"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="Button">
-						<Border x:Name="Border"
-						Background="{TemplateBinding Background}"
-						BorderBrush="{TemplateBinding BorderBrush}"
-						BorderThickness="2"
-						CornerRadius="4"
-						Padding="{TemplateBinding Padding}">
-							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Border>
-						<ControlTemplate.Triggers>
-							<!-- Mouse sobre el botón -->
-							<Trigger Property="IsMouseOver" Value="True">
-								<Setter TargetName="Border" Property="Background" Value="#180028"/>
-								<Setter TargetName="Border" Property="BorderBrush" Value="#B833FF"/>
-							</Trigger>
-							<!-- Botón presionado -->
-							<Trigger Property="IsPressed" Value="True">
-								<Setter TargetName="Border" Property="Background" Value="#2A003F"/>
-								<Setter TargetName="Border" Property="BorderBrush" Value="#B833FF"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
+        <!-- Button (Todos los botones) -->
+        <Style TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Background" Value="#1A0033"/>
+            <Setter Property="Foreground" Value="#FFAB40"/>
+            <Setter Property="BorderBrush" Value="#FF9100"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,12,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="2"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- Mouse sobre el botón -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#180028"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#B833FF"/>
+                            </Trigger>
+                            <!-- Botón presionado -->
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#2A003F"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#B833FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-	</Window.Resources>
+    </Window.Resources>
 
-	<Grid Background="#000000">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="50"/>
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
+    <Grid Background="#000000">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-		<!-- Barra de la ventana personalizada -->
-		<Border Grid.Row="0" Background="#1A0033"
-			Padding="0"
-			MouseLeftButtonDown="Window_MouseLeftButtonDown">
-			<Grid>
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition/>
-					<ColumnDefinition Width="Auto"/>
-				</Grid.ColumnDefinitions>
+        <!-- Barra de la ventana personalizada -->
+        <Border Grid.Row="0" Background="#1A0033"
+                Padding="0"
+                MouseLeftButtonDown="Window_MouseLeftButtonDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-				<!-- Título de la barra -->
-				<TextBlock Grid.Column="0"
-					   Text="Mapa"
-					   VerticalAlignment="Center"
-					   Foreground="#FF6F00"
-					   FontSize="16"
-					   FontWeight="Bold"
-					   Margin="12,0,0,0"/>
+                <!-- Título de la barra -->
+                <TextBlock Grid.Column="0"
+                           Text="Mapa"
+                           VerticalAlignment="Center"
+                           Foreground="#FF6F00"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="12,0,0,0"/>
 
-				<!-- Botones de la barra -->
-				<StackPanel Grid.Column="1"
-						Orientation="Horizontal"
-						VerticalAlignment="Center"
-						HorizontalAlignment="Right"
-						Margin="0,0,8,0">
-					<Button Content="—" Width="40" Height="28" Padding="0" FontSize="14"
-							VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-							Click="Minimize_Click"/>
-					<Button Content="🗖" Width="40" Height="28" Padding="0" FontSize="14"
-							VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-							Click="Maximize_Click"/>
-					<Button Content="✖" Width="40" Height="28" Padding="0" FontSize="14"
-						VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-						Click="Close_Click"/>
-				</StackPanel>
-			</Grid>
-		</Border>
+                <!-- Botones de la barra -->
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"
+                            Margin="0,0,8,0">
+                    <Button Content="—" Width="40" Height="28" Padding="0" FontSize="14"
+                            VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                            Click="Minimize_Click"/>
+                    <Button Content="🗖" Width="40" Height="28" Padding="0" FontSize="14"
+                            VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                            Click="Maximize_Click"/>
+                    <Button Content="✖" Width="40" Height="28" Padding="0" FontSize="14"
+                            VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                            Click="Close_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-		<!-- Contenido principal -->
-		<Grid Grid.Row="1" Margin="16">
+        <!-- Contenido principal -->
+        <Grid Grid.Row="1" Margin="16">
+            <!-- ahora dos columnas: izq = stats, der = mapa -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
 
-			<!-- Aquí va el mapa -->
-			<StackPanel Grid.Column="0" Margin="0,0,16,0">
-				<TextBlock x:Name="Farthest" Text="Vacío esperando mensaje" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
-				<TextBlock x:Name="Closest" Text="Vacío esperando mensaje" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
-				<TextBlock x:Name="Promedio" Text="Vacío esperando mensaje" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
-			</StackPanel>
+            <!-- Columna izquierda: textos de estadísticas -->
+            <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                <TextBlock x:Name="Farthest"
+                           Text="Vacío esperando mensaje"
+                           FontWeight="Bold"
+                           FontSize="28"
+                           Margin="0,0,0,8"/>
+                <TextBlock x:Name="Closest"
+                           Text="Vacío esperando mensaje"
+                           FontWeight="Bold"
+                           FontSize="28"
+                           Margin="0,0,0,8"/>
+                <TextBlock x:Name="Promedio"
+                           Text="Vacío esperando mensaje"
+                           FontWeight="Bold"
+                           FontSize="28"
+                           Margin="0,0,0,8"/>
+            </StackPanel>
 
-		</Grid>
-	</Grid>
+            <!-- Columna derecha: mapa + canvas de marcadores -->
+            <Grid Grid.Column="1">
+                <!-- Imagen del mapa de Costa Rica -->
+                <Image x:Name="MapaImage"
+                       Source="Resources/MapaCR.png"
+                       Stretch="Uniform"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch" />
+
+                <!-- Canvas transparente encima del mapa para dibujar puntos -->
+                <Canvas x:Name="MapaCanvas"
+                        IsHitTestVisible="False"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch" />
+            </Grid>
+        </Grid>
+    </Grid>
 
 </local:WindowBaseLogica>
-
