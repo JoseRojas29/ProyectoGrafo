@@ -96,14 +96,36 @@ namespace ArbolGenealogicoWPF
 
         private void CrearArbol_Click(object sender, RoutedEventArgs e)
         {
+            // 0. Avisar al usuario que se perderán datos si continúa
+            var confirmWin = new ConfirmacionWindow();
+            confirmWin.Owner = this;
+            confirmWin.ShowDialog();
+
+            if (!confirmWin.Confirmado)
+                return;
+
+            // 1. Verificar validez de datos del primer miembro
             if (!VerificarDatos(1))
                 return;
 
+            // 2. Limpiar estructuras previas
+            familiares.Clear();
+            indicePorCedula.Clear();
+
+            // 3. Limpiar interfaz gráfica
+            // Ejemplo si usás un Canvas:
+            // ArbolCanvas.Children.Clear();
+            // O si usás un TreeView:
+            // ArbolTreeView.Items.Clear();
+
+            // 4. Agregar el primer miembro (raíz del árbol)
             var coords = ParsearCoordenadas(CoordenadasInput.Text.Trim());
+
+            MiembroFamilia f;
 
             if (estaVivo)
             {
-                var f = new MiembroFamilia(
+                f = new MiembroFamilia(
                     NombreInput.Text.Trim(),
                     cedulaValida,
                     estaVivo,
@@ -113,14 +135,10 @@ namespace ArbolGenealogicoWPF
                     coords.Latitud,
                     coords.Longitud
                 );
-
-                familiares.Add(f);
-                indicePorCedula[cedulaValida] = f;
-                LimpiarFormulario();
             }
             else
             {
-                var f = new MiembroFamilia(
+                f = new MiembroFamilia(
                     NombreInput.Text.Trim(),
                     cedulaValida,
                     estaVivo,
@@ -131,22 +149,31 @@ namespace ArbolGenealogicoWPF
                     coords.Longitud
                 );
 
-                familiares.Add(f);
-                indicePorCedula[cedulaValida] = f;
-                LimpiarFormulario();
+            familiares.Add(f);
+            indicePorCedula[cedulaValida] = f;
+
+            // Acá también se actualiza la interfaz gráfica según la implementación elegida
+            // Pero sigue pendiente
+            // Pero es como tal el dibujo del árbol
+
+            LimpiarFormulario();
             }
         }
 
         private void Agregar_Click(object sender, RoutedEventArgs e)
         {
+            // 1. Verificar validez de datos del primer miembro
             if (!VerificarDatos(2))
                 return;
 
+            // 2. Crear el nuevo miembro
             var coords = ParsearCoordenadas(CoordenadasInput.Text.Trim());
+
+            MiembroFamilia f;
 
             if (estaVivo)
             {
-                var f = new MiembroFamilia(
+                f = new MiembroFamilia(
                     NombreInput.Text.Trim(),
                     cedulaValida,
                     estaVivo,
@@ -156,14 +183,10 @@ namespace ArbolGenealogicoWPF
                     coords.Latitud,
                     coords.Longitud
                 );
-
-                familiares.Add(f);
-                indicePorCedula[cedulaValida] = f;
-                LimpiarFormulario();
             }
             else
             {
-                var f = new MiembroFamilia(
+                f = new MiembroFamilia(
                     NombreInput.Text.Trim(),
                     cedulaValida,
                     estaVivo,
@@ -173,11 +196,22 @@ namespace ArbolGenealogicoWPF
                     coords.Latitud,
                     coords.Longitud
                 );
-
-                familiares.Add(f);
-                indicePorCedula[cedulaValida] = f;
-                LimpiarFormulario();
             }
+
+            familiares.Add(f);
+            indicePorCedula[cedulaValida] = f;
+
+            // 3. Agregar relación con el miembro seleccionado
+            int parentescoSeleccionado = ParentescoComboBox.SelectedIndex;
+            MiembroFamilia seleccionado = (MiembroFamilia)FamiliaresList.SelectedItem;
+
+            ArbolGenealogicoWPF.ArbolGenealogicoService.AgregarNodo(this, seleccionado, f, parentescoSeleccionado);
+
+            // Acá también se actualiza la interfaz gráfica según la implementación elegida
+            // Pero sigue pendiente
+            // Pero es como tal el dibujo del árbol
+
+            LimpiarFormulario();
         }
 
         // Eliminar familiar seleccionado
@@ -242,19 +276,13 @@ namespace ArbolGenealogicoWPF
             // Nombre obligatorio
             if (string.IsNullOrWhiteSpace(NombreInput.Text))
             {
-                var errorWin = new ErroresWindow("Por favor ingrese un nombre.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                return MostrarError("Por favor ingrese un nombre.");
             }
 
             // Cédula obligatoria
             if (string.IsNullOrWhiteSpace(CedulaInput.Text))
             {
-                var errorWin = new ErroresWindow("Por favor ingrese una cédula.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                return MostrarError("Por favor ingrese una cédula.");
             }
 
             // Normalizar: quitar espacios, guiones, comas y puntos
@@ -263,10 +291,7 @@ namespace ArbolGenealogicoWPF
             // Intentar convertir a entero
             if (!int.TryParse(cedulaNormalizada, out int cedulaNumerica))
             {
-                var errorWin = new ErroresWindow("La cédula debe contener solo números.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                return MostrarError("La cédula debe contener solo números.");
             }
 
             // Guardar valor ya convertido para asignarlo
@@ -275,28 +300,19 @@ namespace ArbolGenealogicoWPF
             // Verificar duplicados usando la cédula
             if (indicePorCedula.ContainsKey(cedulaValida))
             {
-                var errorWin = new ErroresWindow("Ya existe un miembro con esa cédula.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                return MostrarError("Ya existe un miembro con esa cédula.");
             }
 
             // Fecha obligatoria y válida
             if (string.IsNullOrWhiteSpace(FechaInput.Text) || !DateTime.TryParse(FechaInput.Text, out DateTime fechaValidada))
             {
-                var errorWin = new ErroresWindow("Por favor ingrese una fecha válida.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                return MostrarError("Por favor ingrese una fecha válida.");
             }
 
             // No permitir fechas futuras
             if (fechaValidada > DateTime.Now)
             {
-                var errorWin = new ErroresWindow("La fecha de nacimiento no puede ser en el futuro.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                return MostrarError("La fecha de nacimiento no puede ser en el futuro.");
             }
 
             fechaNacimiento = fechaValidada;
@@ -304,10 +320,7 @@ namespace ArbolGenealogicoWPF
             // Coordenadas obligatorias (luego se puede hacer una verificación para ver si son válidas en el sistema)
             if (string.IsNullOrWhiteSpace(CoordenadasInput.Text))
             {
-                var errorWin = new ErroresWindow("Por favor ingrese las coordenadas.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                return MostrarError("Por favor ingrese las coordenadas.");
             }
 
             // Validar edad solo si el CheckBox está marcado
@@ -317,10 +330,7 @@ namespace ArbolGenealogicoWPF
                     !int.TryParse(EdadInput.Text, out int edad) ||
                     edad <= 0)
                 {
-                    var errorWin = new ErroresWindow("Por favor ingrese una edad válida.");
-                    errorWin.Owner = this;
-                    errorWin.ShowDialog();
-                    return false;
+                    return MostrarError("Por favor ingrese una edad válida.");
                 }
 
                 edadValida = edad;
@@ -331,23 +341,25 @@ namespace ArbolGenealogicoWPF
             {
                 if (ParentescoComboBox.SelectedIndex == -1)
                 {
-                    var errorWin = new ErroresWindow("Por favor seleccione un parentesco.");
-                    errorWin.Owner = this;
-                    errorWin.ShowDialog();
-                    return false;
+                    return MostrarError("Por favor seleccione un parentesco.");
                 }
             }
             
             // Foto obligatoria
             if (rutaFotoTemporal == null || FotoPreview.Source == null)
             {
-                var errorWin = new ErroresWindow("Por favor ingrese una foto de la persona.");
-                errorWin.Owner = this;
-                errorWin.ShowDialog();
-                return false;
+                return MostrarError("Por favor ingrese una foto de la persona.");
             }
 
             return true;
+        }
+
+        private bool MostrarError(string mensaje)
+        {
+            var errorWin = new ErroresWindow(mensaje);
+            errorWin.Owner = this;
+            errorWin.ShowDialog();
+            return false;
         }
 
         // Sujeto a cambios según la lógica del otro grafo de distancias

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 
 namespace ArbolGenealogicoWPF
 {
@@ -10,66 +11,65 @@ namespace ArbolGenealogicoWPF
     /// </summary>
     public static class ArbolGenealogicoService
     {
-        public static bool AgregarPrimerNodo(MiembroFamilia miembro)
-        {
-            NuevoNodo = miembro;
-            return true;
-        }
-
         // Agregar nodo según relación (ComboBox)
-        public static bool AgregarNodo(MiembroFamilia seleccionado, MiembroFamilia nuevo, int relacion)
+        public static bool AgregarNodo(Window owner, MiembroFamilia seleccionado, MiembroFamilia nuevo, int relacion)
         {
             if (nuevo == null)
-                throw new ArgumentNullException(nameof(nuevo));
+                return false;
 
-            switch (relacion)
+            try
             {
-                case "hijo":
-                case "hija":
-                case "descendiente":
-                    refMiembro.Hijos.Add(nuevo);
-                    nuevo.Padre = refMiembro.Padre;
-                    nuevo.Madre = refMiembro.Madre;
-                    return true;
+                switch (relacion)
+                {
+                    case 0: // Padre
+                        seleccionado.AsignarPadre(nuevo);
+                        break;
 
-                case "padre":
-                    refMiembro.AsignarPadre(nuevo);
-                    return true;
+                    case 1: // Madre
+                        seleccionado.AsignarMadre(nuevo);
+                        break;
 
-                case "madre":
-                    refMiembro.AsignarMadre(nuevo);
-                    return true;
+                    case 2: // Hijo de padre
+                        seleccionado.AsignarHijoComoPadre(nuevo);
+                        break;
 
-                case "pareja":
-                    refMiembro.AsignarPareja(nuevo);
-                    return true;
+                    case 3: // Hijo de madre
+                        seleccionado.AsignarHijoComoMadre(nuevo);
+                        break;
+
+                    case 4: // Pareja
+                        seleccionado.AsignarPareja(nuevo);
+                        break;
+
+                    case 5: // Hermano
+                        seleccionado.AsignarHermano(nuevo);
+                        break;
+                }
+
+                LigarTodo(seleccionado);
+                LigarTodo(nuevo);
+
+                return true; // Todo salió bien
+            }
+            catch (InvalidOperationException ex)
+            {
+                var errorWin = new ErroresWindow(ex.Message) { Owner = owner };
+                errorWin.ShowDialog();
+                return false;
             }
         }
 
-        // =======================================================
-        //  DETECTAR PAREJAS AUTOMÁTICAMENTE POR MISMOS HIJOS
-        // =======================================================
-        public static void DetectarParejas(List<MiembroFamilia> miembros)
+        public static void LigarTodo(MiembroFamilia miembro)
         {
-            for (int i = 0; i < miembros.Count; i++)
+            if (miembro.Padre != null && miembro.Madre != null)
+                miembro.LigarPareja(miembro.Madre, miembro.Padre);
+
+            miembro.LigarHermanos();
+
+            if (miembro.Padre != null && miembro.Madre != null)
             {
-                for (int j = i + 1; j < miembros.Count; j++)
-                {
-                    var a = miembros[i];
-                    var b = miembros[j];
-
-                    if (a.Hijos.Count == 0 || b.Hijos.Count == 0)
-                        continue;
-
-                    bool mismosHijos =
-                        a.Hijos.All(h => b.Hijos.Contains(h)) &&
-                        b.Hijos.All(h => a.Hijos.Contains(h));
-
-                    if (mismosHijos)
-                    {
-                        a.AsignarPareja(b);
-                    }
-                }
+                miembro.LigarHijosConPadre(miembro.Madre, miembro.Padre);
+                miembro.LigarHijosConMadre(miembro.Madre, miembro.Padre);
             }
         }
 
@@ -88,12 +88,12 @@ namespace ArbolGenealogicoWPF
             int[,] matriz = new int[n, n];
 
             // índice rápido por cédula
-            var index = new Dictionary<string, int>();
+            var index = new Dictionary<int, int>();
             for (int i = 0; i < n; i++)
                 index[miembros[i].Cedula] = i;
 
             // Detectar parejas antes de asignar pesos
-            DetectarParejas(miembros);
+            // DetectarParejas(miembros);
 
             // =======================================================
             // 1. RELACIONES PADRE/MADRE ↔ HIJO

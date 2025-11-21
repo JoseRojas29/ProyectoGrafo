@@ -159,9 +159,14 @@ namespace ArbolGenealogicoWPF
         // ==========================================
         public void LigarHermanos()
         {
-            // Elegir la fuente: primero padre, si no hay, madre
+            // Caso 1: usar hijos de padre/madre si existen
             var fuente = Padre != null ? Padre.Hijos : Madre?.Hijos;
-            if (fuente == null) return;
+
+            if (fuente == null || !fuente.Any())
+            {
+                // Caso 2: si no hay padre/madre, usar la lista de hermanos ya existente
+                fuente = Hermanos;
+            }
 
             foreach (var h in fuente)
             {
@@ -178,6 +183,10 @@ namespace ArbolGenealogicoWPF
             }
         }
 
+        /// <summary>
+        /// Ligar los hijos de un padre con la madre correspondiente
+        /// Es decir, agregar los hijos del padre a la madre y asignar la madre a cada hijo
+        /// </summary>
         public void LigarHijosConPadre(MiembroFamilia madre, MiembroFamilia padre)
         {
             foreach (var hijo in padre.Hijos)
@@ -190,6 +199,10 @@ namespace ArbolGenealogicoWPF
             }
         }
 
+        /// <summary>
+        /// Ligar los hijos de una madre con el padre correspondiente
+        /// Es decir, agregar los hijos de la madre al padre y asignar el padre a cada hijo
+        /// </summary>
         public void LigarHijosConMadre(MiembroFamilia madre, MiembroFamilia padre)
         {
             foreach (var hijo in madre.Hijos)
@@ -199,6 +212,28 @@ namespace ArbolGenealogicoWPF
 
                 if (hijo.Padre != padre)
                     hijo.Padre = padre;
+            }
+        }
+
+        /// <summary>
+        /// Ligar automáticamente a dos miembros como pareja si comparten al menos un hijo.
+        /// </summary>
+        public void LigarPareja(MiembroFamilia madre, MiembroFamilia padre)
+        {
+            if (madre == null || padre == null)
+                return;
+
+            // Buscar si hay al menos un hijo en común
+            bool tienenHijoEnComun = madre.Hijos.Any(h => padre.Hijos.Any(p => p.Cedula == h.Cedula));
+
+            if (tienenHijoEnComun)
+            {
+                // Asignar pareja recíproca si aún no lo están
+                if (madre.Pareja == null)
+                    madre.Pareja = padre;
+
+                if (padre.Pareja == null)
+                    padre.Pareja = madre;
             }
         }
     }
