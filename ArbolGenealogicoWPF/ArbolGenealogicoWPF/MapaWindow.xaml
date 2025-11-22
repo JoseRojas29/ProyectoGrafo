@@ -90,9 +90,6 @@
                     <Button Content="—" Width="40" Height="28" Padding="0" FontSize="14"
                             VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                             Click="Minimize_Click"/>
-                    <Button Content="🗖" Width="40" Height="28" Padding="0" FontSize="14"
-                            VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                            Click="Maximize_Click"/>
                     <Button Content="✖" Width="40" Height="28" Padding="0" FontSize="14"
                             VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                             Click="Close_Click"/>
