@@ -138,7 +138,7 @@
 
                 <!-- Canvas transparente encima del mapa para dibujar puntos -->
                 <Canvas x:Name="MapaCanvas"
-                        IsHitTestVisible="False"
+                        IsHitTestVisible="True"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch" />
             </Grid>

@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using ArbolGenealogico.Geografia;
+using ArbolGenealogico.Modelos;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Shapes;
-using System.Windows.Media;
 using System.Windows.Controls;
-using ArbolGenealogico.Modelos;
-using ArbolGenealogico.Geografia;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using System.IO;
 
 namespace ArbolGenealogicoWPF
 {
@@ -145,6 +147,58 @@ namespace ArbolGenealogicoWPF
         // ============================
         //   MAPEO LAT/LON -> PIXEL Y DIBUJO DE MARCADORES
         // ============================
+
+        private FrameworkElement CrearMarcadorCircularFallback()
+        {
+            return new Ellipse
+            {
+                Width = 10,
+                Height = 10,
+                Fill = Brushes.Cyan,
+                Stroke = Brushes.White,
+                StrokeThickness = 1
+            };
+        }
+
+        private ToolTip CrearToolTipParaFamiliar(Familiar f)
+        {
+            // Aquí decides qué info mostrar
+            var panel = new StackPanel();
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = f.Nombre ?? "(Sin nombre)",
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"Cédula: {f.Cedula}",
+                FontSize = 14
+            });
+
+            if (!string.IsNullOrWhiteSpace(f.Coordenadas))
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = $"Coords: {f.Coordenadas}",
+                    FontSize = 14
+                });
+            }
+
+            if (f.FechaNacimiento.HasValue)
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = $"Nac: {f.FechaNacimiento.Value:dd/MM/yyyy}",
+                    FontSize = 14
+                });
+            }
+
+            return new ToolTip { Content = panel };
+        }
+
         private void DibujarMarcadores()
         {
             MapaCanvas.Children.Clear();
@@ -152,34 +206,77 @@ namespace ArbolGenealogicoWPF
             if (MapaCanvas.ActualWidth <= 0 || MapaCanvas.ActualHeight <= 0)
                 return;
 
-            var miembros = ConvertirAFamiliaModelo();
-
-            foreach (var miembro in miembros)
+            foreach (var f in familiares)
             {
-                var (lat, lon) = miembro.CoordenadasResidencia;
+                if (f == null)
+                    continue;
+
+                // Si no tiene coordenadas válidas, lo ignoramos
+                if (!TryParseCoordenadas(f.Coordenadas, out double lat, out double lon))
+                    continue;
 
                 var punto = LatLonToPixel(lat, lon);
 
-                // Marcador como un círculo
-                var marker = new Ellipse
+                FrameworkElement marcadorVisual;
+
+                // Intentamos usar la foto del familiar si existe
+                if (!string.IsNullOrWhiteSpace(f.RutaFoto) && File.Exists(f.RutaFoto))
                 {
-                    Width = 10,
-                    Height = 10,
-                    Fill = Brushes.Cyan,
-                    Stroke = Brushes.White,
-                    StrokeThickness = 1
-                };
+                    var img = new Image
+                    {
+                        Width = 40,
+                        Height = 40,
+                        Stretch = Stretch.UniformToFill,
+                    };
 
-                // Tooltip con el nombre
-                ToolTipService.SetToolTip(marker, miembro.Nombre);
+                    try
+                    {
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.UriSource = new Uri(f.RutaFoto, UriKind.Absolute);
+                        bitmap.EndInit();
 
-                // Centramos el círculo en el punto
-                Canvas.SetLeft(marker, punto.X - marker.Width / 2);
-                Canvas.SetTop(marker, punto.Y - marker.Height / 2);
+                        img.Source = bitmap;
+                    }
+                    catch
+                    {
+                        // Si falla la carga de la imagen, caeremos al marcador por defecto
+                        img = null;
+                    }
 
-                MapaCanvas.Children.Add(marker);
+                    if (img != null)
+                    {
+                        // (Opcional) hacer el recorte circular del avatar
+                        var clip = new EllipseGeometry(new Point(20, 20), 20, 20);
+                        img.Clip = clip;
+
+                        marcadorVisual = img;
+                    }
+                    else
+                    {
+                        marcadorVisual = CrearMarcadorCircularFallback();
+                    }
+                }
+                else
+                {
+                    // Sin foto -> usamos un punto circular como fallback
+                    marcadorVisual = CrearMarcadorCircularFallback();
+                }
+
+                // Tooltip con la info del familiar
+                ToolTipService.SetToolTip(marcadorVisual, CrearToolTipParaFamiliar(f));
+
+                // Centramos el marcador en el punto calculado
+                double ancho = marcadorVisual.Width;
+                double alto = marcadorVisual.Height;
+                Canvas.SetLeft(marcadorVisual, punto.X - ancho / 2);
+                Canvas.SetTop(marcadorVisual, punto.Y - alto / 2);
+
+                MapaCanvas.Children.Add(marcadorVisual);
             }
         }
+
 
         private Point LatLonToPixel(double lat, double lon)
         {
