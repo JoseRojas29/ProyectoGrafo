@@ -7,9 +7,9 @@ namespace ArbolGenealogicoWPF
 {
     public partial class MapaWindow : WindowBaseLogica
     {
-        private readonly ObservableCollection<Familiar> familiares;
+        private readonly ObservableCollection<MiembroFamilia> familiares;
 
-        public MapaWindow(ObservableCollection<Familiar> ListaFamiliares)
+        public MapaWindow(ObservableCollection<MiembroFamilia> ListaFamiliares)
         {
             InitializeComponent();
             familiares = ListaFamiliares;
