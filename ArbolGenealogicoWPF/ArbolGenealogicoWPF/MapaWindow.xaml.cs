@@ -178,6 +178,13 @@ namespace ArbolGenealogicoWPF
                 FontSize = 14
             });
 
+            // 👉 Edad (si la propiedad existe en Familiar)
+            panel.Children.Add(new TextBlock
+            {
+                Text = $"Edad: {f.Edad} años",
+                FontSize = 14
+            });
+
             if (!string.IsNullOrWhiteSpace(f.Coordenadas))
             {
                 panel.Children.Add(new TextBlock
@@ -198,6 +205,7 @@ namespace ArbolGenealogicoWPF
 
             return new ToolTip { Content = panel };
         }
+
 
         private void DibujarMarcadores()
         {
