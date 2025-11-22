@@ -15,15 +15,9 @@ namespace ArbolGenealogicoWPF
 {
     public partial class MapaWindow : WindowBaseLogica
     {
-        private readonly ObservableCollection<Familiar> familiares;
+        private readonly ObservableCollection<MiembroFamilia> familiares;
 
-        // Aproximación del rectángulo que cubre Costa Rica
-        private const double MinLat = 8.0;
-        private const double MaxLat = 11.5;
-        private const double MinLon = -86.0;
-        private const double MaxLon = -82.0;
-
-        public MapaWindow(ObservableCollection<Familiar> listaFamiliares)
+        public MapaWindow(ObservableCollection<MiembroFamilia> ListaFamiliares)
         {
             InitializeComponent();
             familiares = listaFamiliares;

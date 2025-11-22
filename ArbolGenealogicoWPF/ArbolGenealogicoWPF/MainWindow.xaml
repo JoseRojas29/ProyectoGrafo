@@ -87,6 +87,66 @@
 			<Setter Property="FontSize" Value="20"/>
 			<Setter Property="FontWeight" Value="SemiBold"/>
 		</Style>
+		
+		<!-- CheckBox (cuadro true or false) -->
+		<Style TargetType="CheckBox">
+			<!-- Texto -->
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="Foreground" Value="#FF6F00"/>
+			<Setter Property="Margin" Value="4"/>
+
+			<!-- Plantilla visual -->
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="CheckBox">
+						<StackPanel Orientation="Horizontal">
+							<!-- Cuadro del check -->
+							<Border x:Name="Box"
+									Width="20" Height="20"
+									BorderBrush="#FF9100"
+									BorderThickness="2"
+									CornerRadius="3"
+									Background="#1A0033"
+									Margin="0,0,6,0">
+								<!-- Centrado del contenido -->
+								<Grid>
+									<Path x:Name="CheckMark"
+										  Data="M2,10 L8,14 L18,4"
+										  Stroke="#FFAB40"
+										  StrokeThickness="2"
+										  StrokeLineJoin="Round"
+										  StrokeStartLineCap="Round"
+										  StrokeEndLineCap="Round"
+										  HorizontalAlignment="Center"
+										  VerticalAlignment="Center"
+										  Stretch="Uniform"
+										  Width="14" Height="14"
+										  Visibility="Collapsed"/>
+								</Grid>
+							</Border>
+
+							<!-- Texto del CheckBox -->
+							<ContentPresenter VerticalAlignment="Center"/>
+						</StackPanel>
+
+						<!-- Triggers -->
+						<ControlTemplate.Triggers>
+							<!-- Cuando está marcado -->
+							<Trigger Property="IsChecked" Value="True">
+								<Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+								<Setter TargetName="Box" Property="Background" Value="#2A003F"/>
+							</Trigger>
+
+							<!-- Hover -->
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="Box" Property="BorderBrush" Value="#B833FF"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
 
 		<!-- GroupBox (Contenedor con borde y título) -->
 		<Style TargetType="GroupBox">
@@ -111,6 +171,163 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
+
+		<SolidColorBrush x:Key="ComboFondo" Color="#1A0033"/>
+		<SolidColorBrush x:Key="ComboTexto" Color="#FF6F00"/>
+
+		<Style x:Key="ComboReal" TargetType="{x:Type ComboBox}">
+			<Setter Property="Background" Value="{StaticResource ComboFondo}"/>
+			<Setter Property="Foreground" Value="{StaticResource ComboTexto}"/>
+			<Setter Property="BorderBrush" Value="#FF6F00"/>
+			<Setter Property="BorderThickness" Value="1"/>
+			<Setter Property="Padding" Value="5"/>
+
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ComboBox">
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition/>
+								<ColumnDefinition Width="50"/>
+								<!-- Columna para la flecha -->
+							</Grid.ColumnDefinitions>
+							<!-- BORDE + TEXTO SELECCIONADO (elimina el cuadro blanco) -->
+							<Border x:Name="Bd"
+									Background="{StaticResource ComboFondo}"
+									BorderBrush="{StaticResource ComboTexto}"
+									BorderThickness="{TemplateBinding BorderThickness}"
+									CornerRadius="5"
+									Padding="5">
+
+								<ContentPresenter x:Name="ContentSite"
+												  Margin="3"
+												  HorizontalAlignment="Left"
+												  VerticalAlignment="Center"
+												  Content="{TemplateBinding SelectionBoxItem}"
+												  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+												  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+							</Border>
+
+							<!-- Botón de la flecha -->
+							<ToggleButton Grid.Column="1"
+										  x:Name="ToggleButton"
+										  Focusable="False"
+										  Background="Transparent"
+										  BorderThickness="1"
+										  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}">
+
+								<ToggleButton.Template>
+									<ControlTemplate TargetType="ToggleButton">
+
+										<Border x:Name="BtnBorder"
+												Background="Transparent"
+												BorderThickness="1"
+												CornerRadius="5">
+											<ContentPresenter HorizontalAlignment="Center"
+															  VerticalAlignment="Center"/>
+										</Border>
+
+										<ControlTemplate.Triggers>
+
+											<!-- Hover -->
+											<Trigger Property="IsMouseOver" Value="True">
+												<Setter TargetName="BtnBorder" Property="Background" Value="#180028"/>
+											</Trigger>
+
+											<!-- Click (IsPressed) -->
+											<Trigger Property="IsPressed" Value="True">
+												<Setter TargetName="BtnBorder" Property="Background" Value="#555"/>
+											</Trigger>
+
+											<!-- Cuando el Combo está abierto -->
+											<Trigger Property="IsChecked" Value="True">
+												<Setter TargetName="BtnBorder" Property="Background" Value="#180028"/>
+											</Trigger>
+
+										</ControlTemplate.Triggers>
+
+									</ControlTemplate>
+								</ToggleButton.Template>
+
+								<Border x:Name="BtnBorder"
+										Background="Transparent"
+										BorderBrush="#FF6F00"
+										BorderThickness="1.2"
+										CornerRadius="3"
+										Padding="5">
+									<Path Data="M 0 0 L 6 6 L 12 0 Z"
+										  Fill="#FF6F00"
+										  Stretch="Uniform"
+										  Width="18"
+										  Height="18"
+										  HorizontalAlignment="Center"
+										  VerticalAlignment="Center"/>
+								</Border>
+								
+							</ToggleButton>
+
+							<!-- POPUP -->
+							<Popup x:Name="Popup"
+								   Placement="Bottom"
+								   AllowsTransparency="True"
+								   Focusable="False"
+								   IsOpen="{TemplateBinding IsDropDownOpen}">
+								<Border Background="{StaticResource ComboFondo}"
+										BorderBrush="#FF6F00"
+										BorderThickness="1"
+										MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ComboBox}}">
+									<ScrollViewer>
+										<ItemsPresenter/>
+									</ScrollViewer>
+								</Border>
+							</Popup>
+						</Grid>
+
+						<ControlTemplate.Triggers>
+
+							<!-- Cuando el combo tiene foco (click) -->
+							<Trigger Property="IsKeyboardFocusWithin" Value="True">
+								<Setter TargetName="Bd" Property="BorderBrush" Value="#1A0033"/>
+								<!-- Color al hacer click -->
+								<Setter TargetName="Bd" Property="Background" Value="#1A0033"/>
+								<!-- Fondo al hacer click -->
+							</Trigger>
+
+						</ControlTemplate.Triggers>
+
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+
+		</Style>
+
+		<Style TargetType="ComboBoxItem" x:Key="ComboItemEstilo">
+			<Setter Property="Background" Value="{StaticResource ComboFondo}"/>
+			<Setter Property="Foreground" Value="{StaticResource ComboTexto}"/>
+			<Setter Property="Padding" Value="5"/>
+
+			<Style.Triggers>
+
+				<!-- Hover -->
+				<Trigger Property="IsMouseOver" Value="True">
+					<Setter Property="Background" Value="#180028"/>
+					<Setter Property="Foreground" Value="#B833FF"/>
+					<!-- hover color -->
+				</Trigger>
+
+				<!-- Seleccionado -->
+				<Trigger Property="IsSelected" Value="True">
+					<Setter Property="Background" Value="#180028"/>
+					<!-- selected color -->
+					<Setter Property="Foreground" Value="#B833FF"/>
+				</Trigger>
+
+			</Style.Triggers>
+		</Style>
+
+
+
 
 	</Window.Resources>
 
@@ -166,55 +383,105 @@
 			</Grid.ColumnDefinitions>
 
 			<!-- Datos del familiar -->
-			<StackPanel Grid.Column="0" Margin="0,0,16,0">
-				<TextBlock Text="Ingreso de familiar" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
+			<ScrollViewer Grid.Column="0"
+						  VerticalScrollBarVisibility="Auto"
+						  HorizontalScrollBarVisibility="Disabled"
+						  Margin="0,0,16,0">
+				<StackPanel>
+					<TextBlock Text="Ingreso de familiar" FontWeight="Bold" FontSize="28" Margin="0,0,0,8"/>
 
-				<TextBlock Text="Nombre Completo" Margin="0,0,0,8"/>
-				<TextBox x:Name="NombreInput" Margin="0,0,0,8" ToolTip="Nombre completo"/>
+					<TextBlock Text="Nombre Completo" Margin="0,0,0,8"/>
+					<TextBox x:Name="NombreInput" Margin="0,0,0,8" ToolTip="Nombre completo"/>
 
-				<TextBlock Text="Cédula (sin espacio ni guion)" FontSize="18" Margin="0,0,0,8"/>
-				<TextBox x:Name="CedulaInput" Margin="0,0,0,8" ToolTip="Cédula"/>
+					<TextBlock Text="Cédula" FontSize="18" Margin="0,0,0,8"/>
+					<TextBox x:Name="CedulaInput" Margin="0,0,0,8" ToolTip="Cédula 0-0000-0000"/>
 
-				<TextBlock Text="Fecha de Nacimiento (dd/mm/aaaa)" Margin="0,0,0,8"/>
-				<TextBox x:Name="FechaInput" Margin="0,0,0,8" ToolTip="Fecha de nacimiento (dd/mm/aaaa)"/>
+					<TextBlock Text="Fecha de Nacimiento (dd/mm/aaaa)" Margin="0,0,0,8"/>
+					<TextBox x:Name="FechaInput" Margin="0,0,0,8" ToolTip="Fecha de nacimiento (dd/mm/aaaa)"/>
 
-				<TextBlock Text="Coordenadas de residencia (x,y)" Margin="0,0,0,8"/>
-				<TextBox x:Name="CoordenadasInput" Margin="0,0,0,8" ToolTip="(ej: 9.93,84.08)"/>
+					<TextBlock Text="Coordenadas de residencia (x,y)" Margin="0,0,0,8"/>
+					<TextBox x:Name="CoordenadasInput" Margin="0,0,0,8" ToolTip="(ej: 9.93,84.08)"/>
 
-				<TextBlock Text="Edad" Margin="0,0,0,8"/>
-				<TextBox x:Name="EdadInput" Margin="0,0,0,8" ToolTip="Edad actual o a la que falleció"/>
+					<!-- Contenedor de grid para saber si la persona está viva y obtener su edad -->
+					<Grid Margin="8">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto"/>
+							<RowDefinition Height="Auto"/>
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="*"/>
+						</Grid.ColumnDefinitions>
 
-				<!-- El parentesco es obligatorio al agregar un nodo respecto a otro mas no para la raíz -->
-				<TextBlock Text="Parentesco" Margin="0,0,0,8"/>
-				<TextBox x:Name="ParentescoInput" Margin="0,0,0,8" ToolTip="Parentesco con la persona seleccionada"/>
+						<TextBlock Grid.Row="0" Grid.Column="0" Text="¿La persona falleció?" FontSize="14"
+								   VerticalAlignment="Center" Margin="4"/>
+						<CheckBox Grid.Row="1" Grid.Column="0" x:Name="MuerteCheckBox" Content="" Margin="4" 
+								  VerticalAlignment="Center" HorizontalAlignment="Center"
+								  Checked="MuerteCheckBox_Checked" Unchecked="MuerteCheckBox_Unchecked"/>
 
-				<!-- Contenedor horizontal para botón y preview de foto -->
-				<StackPanel Orientation="Horizontal" Margin="0,8,0,8" VerticalAlignment="Center">
-					<Button x:Name="SeleccionarFotoBtn" Content="Seleccionar foto" Click="SeleccionarFoto_Click" Width="200" Height="60"/>
-					<Border Width="80" Height="80" Background="#222" CornerRadius="4" BorderBrush="#444" BorderThickness="1">
-						<Image x:Name="FotoPreview" Stretch="UniformToFill"/>
-					</Border>
+						<TextBlock Grid.Row="0" Grid.Column="1" Text="Edad que tenía al fallecer" FontSize="14"
+								   VerticalAlignment="Center" Margin="4"/>
+						<TextBox Grid.Row="1" Grid.Column="1" x:Name="EdadInput" 
+								 Margin="4" IsEnabled="{Binding IsChecked, ElementName=MuerteCheckBox}"
+								 ToolTip="Este campo se habilita únicamente si la persona está marcada como fallecida"/>
+					</Grid>
+
+					<!-- El parentesco es obligatorio al agregar un nodo respecto a otro, mas no para la "raíz" -->
+					<StackPanel Margin="8">
+						<TextBlock Text="Seleccione el parentesco:"
+								   FontWeight="Bold"
+								   Margin="0,0,0,6"/>
+
+						<ComboBox x:Name="ParentescoComboBox" Style="{StaticResource ComboReal}" ItemContainerStyle="{StaticResource ComboItemEstilo}">
+							<ComboBoxItem>Padre</ComboBoxItem>
+							<ComboBoxItem>Madre</ComboBoxItem>
+							<ComboBoxItem>Hij@ de padre</ComboBoxItem>
+							<ComboBoxItem>Hij@ de madre</ComboBoxItem>
+							<ComboBoxItem>Pareja</ComboBoxItem>
+							<ComboBoxItem>Herman@</ComboBoxItem>
+						</ComboBox>
+
+					</StackPanel>
+
+					<!-- Contenedor horizontal para botón y preview de foto -->
+					<StackPanel Orientation="Horizontal" Margin="0,4,0,4" VerticalAlignment="Center">
+						<Button x:Name="SeleccionarFotoBtn" Content="Seleccionar foto" Click="SeleccionarFoto_Click" Width="200" Height="60"/>
+						<Border Width="80" Height="80" Background="#222" CornerRadius="4" BorderBrush="#444" BorderThickness="1">
+							<Image x:Name="FotoPreview" Stretch="UniformToFill"/>
+						</Border>
+					</StackPanel>
+
+					<!-- Botones de acciones -->
+					<StackPanel Orientation="Vertical" Margin="0,16,0,0">
+						<Button Content="Deseleccionar" Click="Deseleccionar_Click" Padding="8,4"/>
+						<Button Content="Crear árbol" Click="CrearArbol_Click" Padding="8,4"/>
+						<Button Content="Agregar respecto al seleccionado" Click="Agregar_Click" Padding="8,4"/>
+						<Button Content="Eliminar seleccionado" Click="Eliminar_Click" Padding="8,4"/>
+						<Button Content="Mapa" Click="AbrirMapa_Click" Padding="8,4"/>
+						<Button Content="Estadísticas" Click="AbrirEstadisticas_Click" Padding="8,4"/>
+					</StackPanel>
 				</StackPanel>
+			</ScrollViewer>
 
-				<StackPanel Orientation="Vertical" Margin="0,16,0,0">
-					<Button Content="Crear árbol" Click="CrearArbol_Click" Padding="8,4"/>
-					<Button Content="Agregar respecto al seleccionado" Click="Agregar_Click" Padding="8,4"/>
-					<Button Content="Eliminar seleccionado" Click="Eliminar_Click" Padding="8,4"/>
-					<Button Content="Mapa" Click="AbrirMapa_Click" Padding="8,4"/>
-					<Button Content="Estadísticas" Click="AbrirEstadisticas_Click" Padding="8,4"/>
-				</StackPanel>
-			</StackPanel>
+			<!-- Canvas para dibujar el árbol + ListView oculto -->
+			<ScrollViewer Grid.Column="1"
+						  HorizontalScrollBarVisibility="Auto"
+						  VerticalScrollBarVisibility="Auto">
 
-			<!-- Lista de familiares (Ahorita se va, porque son los nodos realmente, y group box pareciera que también) -->
-			<GroupBox Grid.Column="1" Header="Familiares"
-			  Background="#111111" Foreground="#00FFFF"
-			  BorderBrush="#00FFFF" BorderThickness="2">
-				<ListView x:Name="FamiliaresList" SelectionMode="Single"
-						  Background="#111111" Foreground="#00FFFF" BorderBrush="#00FFFF" BorderThickness="1"
-						  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				</ListView>
-			</GroupBox>
+				<Grid>
+					<!-- ListView oculto para manejar selección -->
+					<ListView x:Name="FamiliaresList"
+							  ItemsSource="{Binding familiares}"
+							  Visibility="Collapsed"/>
 
+					<!-- Canvas visible para dibujar el árbol -->
+					<Canvas x:Name="ArbolCanvas"
+							Background="White"
+							MinWidth="2000"
+							MinHeight="2000"
+							MouseLeftButtonDown="ArbolCanvas_MouseLeftButtonDown"/>
+				</Grid>
+			</ScrollViewer>
 		</Grid>
 	</Grid>
 

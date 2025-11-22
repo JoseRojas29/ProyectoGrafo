@@ -11,9 +11,9 @@ namespace ArbolGenealogicoWPF
 {
     public partial class EstadisticasWindow : WindowBaseLogica
     {
-        private readonly ObservableCollection<Familiar> familiares;
+        private readonly ObservableCollection<MiembroFamilia> familiares;
 
-        public EstadisticasWindow(ObservableCollection<Familiar> listaFamiliares)
+        public EstadisticasWindow(ObservableCollection<MiembroFamilia> ListaFamiliares)
         {
             InitializeComponent();
             familiares = listaFamiliares;
