@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Security;
 
 namespace ArbolGenealogicoWPF
 {
@@ -41,11 +42,8 @@ namespace ArbolGenealogicoWPF
         // Diccionario para evitar duplicados
         private Dictionary<int, MiembroFamilia> indicePorCedula = new();
 
-        // Diccionario para las coordenadas en el árbol, para saber su posición en pixeles
-        private Dictionary<int, GridCoord> cedulaACoord = new();
-
         // Diccionario para actualizar posición, estilo o eliminar el nodo visual si se borra.
-        private Dictionary<int, FrameworkElement> cedulaAVisual = new Dictionary<int, FrameworkElement>();
+        private Dictionary<int, Border> visualPorCedula = new();
 
         // Espaciado entre nodos (Se ajusta según como vea los tamaños ya al correr)
         private const int CellWidth = 180;   // ancho de cada celda lógica
@@ -104,6 +102,16 @@ namespace ArbolGenealogicoWPF
             estaVivo = true;
         }
 
+        private void Deseleccionar_Click(object sender, RoutedEventArgs e)
+        {
+            // Limpiar selección en la lista
+            FamiliaresList.SelectedItem = null;
+
+            // Quitar resaltado de todos los nodos
+            foreach (var b in visualPorCedula.Values)
+                b.Background = Brushes.Transparent;
+        }
+
         private void CrearArbol_Click(object sender, RoutedEventArgs e)
         {
             // 0. Avisar al usuario que se perderán datos si continúa
@@ -121,14 +129,13 @@ namespace ArbolGenealogicoWPF
             // 2. Limpiar estructuras previas
             familiares.Clear();
             indicePorCedula.Clear();
-            cedulaACoord.Clear();
-            cedulaAVisual.Clear();
+            visualPorCedula.Clear();
 
             // 3. Limpiar interfaz gráfica
             ArbolCanvas.Children.Clear();
 
             // 4. Crear el nuevo miembro (el primero de todos)
-            var coords = ParsearCoordenadas(CoordenadasInput.Text.Trim());
+            var coordsAux = ParsearCoordenadas(CoordenadasInput.Text.Trim());
 
             MiembroFamilia f;
 
@@ -141,8 +148,8 @@ namespace ArbolGenealogicoWPF
                     null,
                     fechaNacimiento,
                     rutaFotoTemporal,
-                    coords.Latitud,
-                    coords.Longitud
+                    coordsAux.Latitud,
+                    coordsAux.Longitud
                 );
             }
             else
@@ -154,8 +161,8 @@ namespace ArbolGenealogicoWPF
                     edadValida,
                     fechaNacimiento,
                     rutaFotoTemporal,
-                    coords.Latitud,
-                    coords.Longitud
+                    coordsAux.Latitud,
+                    coordsAux.Longitud
                 );
             }
 
@@ -163,10 +170,9 @@ namespace ArbolGenealogicoWPF
             familiares.Add(f);
             indicePorCedula[cedulaValida] = f;
 
-            // 6. Asignar coordenadas y dibujar 
-            AsignarCoordenadasSiFaltan(f);
-            DibujarNodo(f);
-            DibujarConexiones(f);
+            // 5. Recalcular layout completo y redibujar
+            var coords = ArbolGenealogicoService.CalcularLayoutCompleto(familiares);
+            RedibujarArbol(ArbolCanvas, familiares);
 
             // 7. Limpiar formulario para el siguiente ingreso
             LimpiarFormulario();
@@ -179,7 +185,7 @@ namespace ArbolGenealogicoWPF
                 return;
 
             // 2. Crear el nuevo miembro
-            var coords = ParsearCoordenadas(CoordenadasInput.Text.Trim());
+            var coordsAux = ParsearCoordenadas(CoordenadasInput.Text.Trim());
 
             MiembroFamilia f;
 
@@ -192,8 +198,8 @@ namespace ArbolGenealogicoWPF
                     null,
                     fechaNacimiento,
                     rutaFotoTemporal,
-                    coords.Latitud,
-                    coords.Longitud
+                    coordsAux.Latitud,
+                    coordsAux.Longitud
                 );
             }
             else
@@ -205,8 +211,8 @@ namespace ArbolGenealogicoWPF
                     edadValida,
                     fechaNacimiento,
                     rutaFotoTemporal,
-                    coords.Latitud,
-                    coords.Longitud
+                    coordsAux.Latitud,
+                    coordsAux.Longitud
                 );
             }
 
@@ -219,28 +225,65 @@ namespace ArbolGenealogicoWPF
             MiembroFamilia seleccionado = (MiembroFamilia)FamiliaresList.SelectedItem;
             ArbolGenealogicoService.AgregarNodo(this, seleccionado, f, parentescoSeleccionado);
 
-            // 5. Asignar coordenadas y dibujar
-            AsignarCoordenadasSiFaltan(f);
-            DibujarNodo(f);
-            DibujarConexiones(f);
+            // 5. Recalcular layout completo y redibujar
+            RedibujarArbol(ArbolCanvas, familiares);
 
             // 6. Limpiar formulario para el siguiente ingreso
             LimpiarFormulario();
         }
 
-        // Eliminar familiar seleccionado
         private void Eliminar_Click(object sender, RoutedEventArgs e)
         {
-            if (FamiliaresList.SelectedItem is MiembroFamilia sel)
+            if (FamiliaresList.SelectedItem is not MiembroFamilia sel)
             {
-                familiares.Remove(sel);
-            }
-            else
-            {
-                var errorWin = new ErroresWindow("Selecciona un familiar en la lista para eliminar.");
+                var errorWin = new ErroresWindow("Por favor seleccione un familiar.");
                 errorWin.Owner = this;
                 errorWin.ShowDialog();
+                return;
             }
+
+            // Verificar si es nodo puente
+            if (EsNodoPuente(sel, familiares))
+            {
+                var errorWin = new ErroresWindow($"No se puede eliminar a {sel.Nombre}.\nEsto fragmentaría al árbol actual en dos.");
+                errorWin.Owner = this;
+                errorWin.ShowDialog();
+                return;
+            }
+
+            // 1. Limpiar relaciones inversas
+            if (sel.Padre != null)
+                sel.Padre.Hijos.Remove(sel);
+
+            if (sel.Madre != null)
+                sel.Madre.Hijos.Remove(sel);
+
+            sel.QuitarParejaEnElOtroLado();
+
+            foreach (var hijo in sel.Hijos.ToList())
+            {
+                if (hijo.Padre == sel) hijo.QuitarPadre();
+                if (hijo.Madre == sel) hijo.QuitarMadre();
+            }
+
+            foreach (var hermano in sel.Hermanos.ToList())
+                hermano.Hermanos.Remove(sel);
+
+            // 2. Eliminar de los dos diccionarios y del canvas
+            if (visualPorCedula.TryGetValue(sel.Cedula, out var border))
+            {
+                var parentCanvas = VisualTreeHelper.GetParent(border) as Canvas;
+                parentCanvas?.Children.Remove(border);
+                visualPorCedula.Remove(sel.Cedula);
+            }
+
+            indicePorCedula.Remove(sel.Cedula);
+
+            // 3. Eliminar de la lista global
+            familiares.Remove(sel);
+
+            // 4. Redibujar el árbol para limpiar líneas
+            RedibujarArbol(ArbolCanvas, familiares);
         }
 
         private void AbrirEstadisticas_Click(object sender, RoutedEventArgs e)
@@ -283,6 +326,10 @@ namespace ArbolGenealogicoWPF
             ParentescoComboBox.SelectedIndex = -1; 
             ParentescoComboBox.Text = string.Empty;
             MuerteCheckBox.IsChecked = false;
+            FamiliaresList.SelectedItem = null;
+
+            foreach (var panel in visualPorCedula.Values)
+                panel.Background = Brushes.Transparent;
         }
 
         private bool VerificarDatos(int modo)
@@ -358,6 +405,11 @@ namespace ArbolGenealogicoWPF
                     return MostrarError("Por favor seleccione un parentesco.");
                 }
 
+                if (FamiliaresList.SelectedItem == null)
+                {
+                    return MostrarError("Por favor seleccione un familiar.");
+                }
+
                 MiembroFamilia seleccionado = (MiembroFamilia)FamiliaresList.SelectedItem;
 
                 // Validar lógica de fechas entre padre/madre e hijo
@@ -394,6 +446,79 @@ namespace ArbolGenealogicoWPF
             return false;
         }
 
+        private bool EsNodoPuente(MiembroFamilia miembro, IEnumerable<MiembroFamilia> familiares)
+        {
+            // Si el miembro no existe o no hay nadie más, no es puente
+            if (miembro == null || familiares == null) return false;
+
+            // 1) Obtener los vecinos directos del miembro (su "grado" en el grafo)
+            var vecinosMiembro = ObtenerVecinosDistintos(miembro);
+
+            // Corte rápido: grado 0 o 1 => no puede desconectar nada
+            if (vecinosMiembro.Count <= 1)
+                return false;
+
+            // 2) Hallar el componente conectado de 'miembro' (con el miembro presente)
+            var componente = new HashSet<MiembroFamilia>();
+            var stackComp = new Stack<MiembroFamilia>();
+            stackComp.Push(miembro);
+
+            while (stackComp.Count > 0)
+            {
+                var actual = stackComp.Pop();
+                if (!componente.Add(actual)) continue;
+
+                foreach (var v in ObtenerVecinosDistintos(actual))
+                    if (!componente.Contains(v))
+                        stackComp.Push(v);
+            }
+
+            // Si el componente tiene solo al miembro, no hay nada que desconectar
+            if (componente.Count == 1)
+                return false;
+
+            // 3) Simular la eliminación: iniciar DFS desde cualquier vecino del miembro
+            // pero sin poder pasar por 'miembro'. La meta es visitar el resto del componente.
+            var origen = vecinosMiembro.First(); // existe porque grado >= 2
+            var visitados = new HashSet<MiembroFamilia>();
+            var stack = new Stack<MiembroFamilia>();
+            stack.Push(origen);
+
+            while (stack.Count > 0)
+            {
+                var actual = stack.Pop();
+                if (!visitados.Add(actual)) continue;
+
+                foreach (var v in ObtenerVecinosDistintos(actual))
+                {
+                    if (v == miembro) continue;          // "removemos" el nodo
+                    if (!visitados.Contains(v))
+                        stack.Push(v);
+                }
+            }
+
+            // 4) Comprobación: ¿visitamos todo el componente salvo al propio miembro?
+            // Si no, eliminar 'miembro' desconecta el componente => es puente.
+            return visitados.Count < (componente.Count - 1);
+        }
+
+        private List<MiembroFamilia> ObtenerVecinosDistintos(MiembroFamilia m)
+        {
+            var vecinos = new HashSet<MiembroFamilia>();
+
+            if (m.Padre != null) vecinos.Add(m.Padre);
+            if (m.Madre != null) vecinos.Add(m.Madre);
+            if (m.Pareja != null) vecinos.Add(m.Pareja);
+
+            foreach (var h in m.Hijos)
+                if (h != null) vecinos.Add(h);
+
+            foreach (var he in m.Hermanos)
+                if (he != null) vecinos.Add(he);
+
+            return vecinos.ToList();
+        }
+
         // Sujeto a cambios según la lógica del otro grafo de distancias
         private (double Latitud, double Longitud) ParsearCoordenadas(string input)
         {
@@ -416,239 +541,124 @@ namespace ArbolGenealogicoWPF
         // ============================================
         //         MÉTODOS GRÁFICOS DEL ÁRBOL
         // ============================================
-        private Point GridToPixel(GridCoord g)
+        public static Point GridToPixel(GridCoord c)
         {
-            if (cedulaACoord.Count == 0)
-                return new Point(ArbolCanvas.ActualWidth / 2, ArbolCanvas.ActualHeight / 2);
-
-            int minRow = cedulaACoord.Values.Min(c => c.Row);
-            int maxRow = cedulaACoord.Values.Max(c => c.Row);
-            int minCol = cedulaACoord.Values.Min(c => c.Col);
-            int maxCol = cedulaACoord.Values.Max(c => c.Col);
-
-            int centerRow = (minRow + maxRow) / 2;
-            int centerCol = (minCol + maxCol) / 2;
-
-            double x = (ArbolCanvas.ActualWidth / 2) + (g.Col - centerCol) * CellWidth;
-            double y = (ArbolCanvas.ActualHeight / 2) + (g.Row - centerRow) * RowHeight;
-
-            return new Point(x, y);
+            return new Point(c.Col * CellWidth, c.Row * RowHeight);
         }
 
-        private void DibujarNodo(MiembroFamilia miembro)
+        public void RedibujarArbol(Canvas arbolCanvas, IEnumerable<MiembroFamilia> miembros)
         {
-            // Si ya existe el visual, lo actualizamos en vez de crear uno nuevo
-            if (cedulaAVisual.ContainsKey(miembro.Cedula))
-            {
-                var panelExistente = cedulaAVisual[miembro.Cedula];
-                var coordExistente = cedulaACoord[miembro.Cedula];
-                var puntoExistente = GridToPixel(coordExistente);
+            var lista = miembros.ToList();
+            arbolCanvas.Children.Clear();
 
-                Canvas.SetLeft(panelExistente, puntoExistente.X);
-                Canvas.SetTop(panelExistente, puntoExistente.Y);
-                return;
+            // 1. Capa invisible al fondo (para detectar clics en áreas vacías)
+            var fondo = new Rectangle
+            {
+                Width = arbolCanvas.ActualWidth,
+                Height = arbolCanvas.ActualHeight,
+                Fill = Brushes.Transparent // invisible pero clickeable
+            };
+            fondo.MouseLeftButtonDown += ArbolCanvas_MouseLeftButtonDown;
+            arbolCanvas.Children.Add(fondo);
+
+            // 2. Calcular coordenadas y matriz
+            var coords = ArbolGenealogicoService.CalcularLayoutCompleto(lista);
+            var index = lista.ToDictionary(m => m.Cedula, m => lista.IndexOf(m));
+            var matriz = ArbolGenealogicoService.GenerarMatriz(lista);
+
+            // 3. Dibujar nodos
+            visualPorCedula = new Dictionary<int, Border>();
+            foreach (var m in lista)
+            {
+                var c = coords[m.Cedula];
+                var p = GridToPixel(c);
+
+                var panel = new StackPanel { Orientation = Orientation.Vertical, Width = 120 };
+                panel.Children.Add(new Image { Width = 80, Height = 80, Stretch = Stretch.UniformToFill });
+                panel.Children.Add(new TextBlock { Text = m.Nombre, FontSize = 14, TextAlignment = TextAlignment.Center });
+
+                var cont = new Border
+                {
+                    Background = Brushes.Transparent, // base transparente
+                    BorderBrush = Brushes.Gray,
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(6),
+                    Child = panel,
+                    Padding = new Thickness(8),
+                    Tag = m
+                };
+                cont.MouseLeftButtonDown += Nodo_Click;
+
+                Canvas.SetLeft(cont, p.X);
+                Canvas.SetTop(cont, p.Y);
+                arbolCanvas.Children.Add(cont);
+                visualPorCedula[m.Cedula] = cont;
             }
 
-            // Crear visual del nodo
-            var panel = new StackPanel
+            // 4. Dibujar conexiones (líneas)
+            for (int i = 0; i < lista.Count; i++)
             {
-                Orientation = Orientation.Vertical,
-                Width = 100,
-                Height = 120,
-                Tag = miembro
-            };
+                for (int j = 0; j < lista.Count; j++)
+                {
+                    int w = matriz[i, j];
+                    if (w == -1) continue;
 
-            var foto = new Image
-            {
-                Source = new BitmapImage(new Uri(miembro.FotografiaRuta, UriKind.RelativeOrAbsolute)),
-                Width = 80,
-                Height = 80
-            };
+                    var mi = lista[i];
+                    var mj = lista[j];
+                    var pi = GridToPixel(coords[mi.Cedula]);
+                    var pj = GridToPixel(coords[mj.Cedula]);
 
-            var nombre = new TextBlock
-            {
-                Text = miembro.Nombre,
-                FontSize = 14,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
+                    var line = new Line
+                    {
+                        X1 = pi.X + 60,
+                        Y1 = pi.Y + 40,
+                        X2 = pj.X + 60,
+                        Y2 = pj.Y + 40,
+                        StrokeThickness = w is 4 or 5 ? 2 : 3,
+                        Stroke = w switch
+                        {
+                            0 => Brushes.DarkGreen, // padre→hijo
+                            1 => Brushes.SeaGreen,  // madre→hijo
+                            2 => Brushes.DarkBlue,  // hijo→padre
+                            3 => Brushes.SlateBlue, // hijo→madre
+                            4 => Brushes.Orange,    // pareja
+                            5 => Brushes.Gray,      // hermanos
+                            _ => Brushes.Black
+                        }
+                    };
 
-            panel.Children.Add(foto);
-            panel.Children.Add(nombre);
-
-            panel.MouseLeftButtonDown += Nodo_Click;
-
-            // Obtener coordenadas lógicas y convertirlas a píxeles
-            var coord = cedulaACoord[miembro.Cedula];
-            var punto = GridToPixel(coord);
-
-            Canvas.SetLeft(panel, punto.X);
-            Canvas.SetTop(panel, punto.Y);
-
-            // Agregar al Canvas y guardar referencia
-            ArbolCanvas.Children.Add(panel);
-            cedulaAVisual[miembro.Cedula] = panel;
-        }
-
-        private void DibujarConexiones(MiembroFamilia miembro)
-        {
-            var origenCoord = cedulaACoord[miembro.Cedula];
-            var origenPixel = GridToPixel(origenCoord);
-
-            // Padre ↔ hijo
-            if (miembro.Padre != null && cedulaACoord.ContainsKey(miembro.Padre.Cedula))
-                DibujarLineaPadreHijo(miembro.Padre.Cedula, miembro.Cedula);
-
-            if (miembro.Madre != null && cedulaACoord.ContainsKey(miembro.Madre.Cedula))
-                DibujarLineaPadreHijo(miembro.Madre.Cedula, miembro.Cedula);
-
-            // Pareja ↔ pareja
-            if (miembro.Pareja != null && cedulaACoord.ContainsKey(miembro.Pareja.Cedula))
-                DibujarLineaPareja(miembro.Cedula, miembro.Pareja.Cedula);
-
-            // Hermanos ↔ hermanos
-            foreach (var hermano in miembro.Hermanos)
-            {
-                if (cedulaACoord.ContainsKey(hermano.Cedula))
-                    DibujarLineaHermano(miembro.Cedula, hermano.Cedula);
+                    arbolCanvas.Children.Add(line);
+                }
             }
-        }
-
-        private void DibujarLineaPadreHijo(int padreCed, int hijoCed)
-        {
-            var padrePixel = GridToPixel(cedulaACoord[padreCed]);
-            var hijoPixel = GridToPixel(cedulaACoord[hijoCed]);
-
-            double parentX = padrePixel.X + 50; // centro del nodo padre
-            double parentY = padrePixel.Y + 120; // parte inferior del nodo padre
-            double childX = hijoPixel.X + 50;   // centro del nodo hijo
-            double childY = hijoPixel.Y;        // parte superior del nodo hijo
-            double midY = (parentY + childY) / 2;
-
-            var points = new PointCollection
-            {
-                new Point(parentX, parentY),
-                new Point(parentX, midY),
-                new Point(childX, midY),
-                new Point(childX, childY)
-            };
-
-            var poly = new Polyline
-            {
-                Stroke = Brushes.Black,
-                StrokeThickness = 2,
-                Points = points
-            };
-
-            ArbolCanvas.Children.Add(poly);
-        }
-
-        private void DibujarLineaPareja(int cedA, int cedB)
-        {
-            var aPixel = GridToPixel(cedulaACoord[cedA]);
-            var bPixel = GridToPixel(cedulaACoord[cedB]);
-
-            double ax = aPixel.X + 50;
-            double ay = aPixel.Y + 60;
-            double bx = bPixel.X + 50;
-            double by = bPixel.Y + 60;
-
-            var line = new Line
-            {
-                X1 = ax,
-                Y1 = ay,
-                X2 = bx,
-                Y2 = by,
-                Stroke = Brushes.Black,
-                StrokeThickness = 2
-            };
-
-            ArbolCanvas.Children.Add(line);
-        }
-
-        private void DibujarLineaHermano(int cedA, int cedB)
-        {
-            var aPixel = GridToPixel(cedulaACoord[cedA]);
-            var bPixel = GridToPixel(cedulaACoord[cedB]);
-
-            double ax = aPixel.X + 50;
-            double ay = aPixel.Y;
-            double bx = bPixel.X + 50;
-            double by = bPixel.Y;
-
-            var line = new Line
-            {
-                X1 = ax,
-                Y1 = ay,
-                X2 = bx,
-                Y2 = by,
-                Stroke = Brushes.Black,
-                StrokeThickness = 2
-            };
-
-            ArbolCanvas.Children.Add(line);
-        }
-
-        private void AsignarCoordenadasSiFaltan(MiembroFamilia miembro)
-        {
-            // Si ya tiene coordenadas, no hacemos nada
-            if (cedulaACoord.ContainsKey(miembro.Cedula))
-                return;
-
-            int row = 0;
-            int col = 0;
-
-            // Caso 1: tiene padre o madre → fila = padre.Row + 1
-            if (miembro.Padre != null && cedulaACoord.ContainsKey(miembro.Padre.Cedula))
-            {
-                row = cedulaACoord[miembro.Padre.Cedula].Row + 1;
-                col = cedulaACoord[miembro.Padre.Cedula].Col;
-            }
-            else if (miembro.Madre != null && cedulaACoord.ContainsKey(miembro.Madre.Cedula))
-            {
-                row = cedulaACoord[miembro.Madre.Cedula].Row + 1;
-                col = cedulaACoord[miembro.Madre.Cedula].Col;
-            }
-
-            // Caso 2: tiene hijos → fila = hijo.Row - 1
-            else if (miembro.Hijos.Any(h => cedulaACoord.ContainsKey(h.Cedula)))
-            {
-                var hijo = miembro.Hijos.First(h => cedulaACoord.ContainsKey(h.Cedula));
-                row = cedulaACoord[hijo.Cedula].Row - 1;
-                col = cedulaACoord[hijo.Cedula].Col;
-            }
-
-            // Caso 3: tiene hermanos → misma fila, columna contigua
-            else if (miembro.Hermanos.Any(h => cedulaACoord.ContainsKey(h.Cedula)))
-            {
-                var hermano = miembro.Hermanos.First(h => cedulaACoord.ContainsKey(h.Cedula));
-                row = cedulaACoord[hermano.Cedula].Row;
-                col = cedulaACoord[hermano.Cedula].Col + 1;
-            }
-
-            // Caso 4: primer nodo → origen
-            else
-            {
-                row = 0;
-                col = 0;
-            }
-
-            // Guardar coordenadas
-            cedulaACoord[miembro.Cedula] = new GridCoord { Row = row, Col = col };
         }
 
         private void Nodo_Click(object sender, MouseButtonEventArgs e)
         {
-            if (sender is not StackPanel panel)
-                return; // si no es un StackPanel, no hacemos nada
+            if (sender is not Border border || border.Tag is not MiembroFamilia miembro)
+                return;
 
-            if (panel.Tag is not MiembroFamilia miembro)
-                return; // si el Tag no es un MiembroFamilia, no hacemos nada
+            // Limpiar resaltado previo
+            foreach (var b in visualPorCedula.Values)
+                b.Background = Brushes.Transparent;
 
             // Guardar como seleccionado
             FamiliaresList.SelectedItem = miembro;
 
-            // Opcional: resaltar visualmente el nodo
-            panel.Background = Brushes.LightBlue;
+            // Resaltar visualmente
+            border.Background = Brushes.LightBlue;
+
+            e.Handled = true;
+        }
+
+        private void ArbolCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.Source is Canvas) // solo si el clic fue en el Canvas vacío
+            {
+                FamiliaresList.SelectedItem = null;
+
+                foreach (var b in visualPorCedula.Values)
+                    b.Background = Brushes.Transparent; // volver al estado base
+            }
         }
     }
 }

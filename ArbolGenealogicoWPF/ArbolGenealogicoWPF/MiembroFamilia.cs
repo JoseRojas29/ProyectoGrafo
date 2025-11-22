@@ -126,6 +126,17 @@ namespace ArbolGenealogicoWPF
             if (hijo == null)
                 throw new ArgumentNullException(nameof(hijo));
 
+            // Si ya tengo hijos, verificar mi rol
+            if (Hijos.Any())
+            {
+                var hijoReferencia = Hijos.First();
+                bool soyPadre = hijoReferencia.Padre != null && hijoReferencia.Padre.Cedula == this.Cedula;
+                bool soyMadre = hijoReferencia.Madre != null && hijoReferencia.Madre.Cedula == this.Cedula;
+
+                if (soyMadre)
+                    throw new InvalidOperationException($"{Nombre} ya es madre en otra relación, no puede ser padre.");
+            }
+
             if (hijo.Padre != null && hijo.Padre != this)
                 throw new InvalidOperationException("El hijo ya tiene otro padre asignado.");
 
@@ -137,6 +148,17 @@ namespace ArbolGenealogicoWPF
         {
             if (hijo == null)
                 throw new ArgumentNullException(nameof(hijo));
+
+            // Si ya tengo hijos, verificar mi rol
+            if (Hijos.Any())
+            {
+                var hijoReferencia = Hijos.First();
+                bool soyPadre = hijoReferencia.Padre != null && hijoReferencia.Padre.Cedula == this.Cedula;
+                bool soyMadre = hijoReferencia.Madre != null && hijoReferencia.Madre.Cedula == this.Cedula;
+
+                if (soyPadre)
+                    throw new InvalidOperationException($"{Nombre} ya es padre en otra relación, no puede ser madre.");
+            }
 
             if (hijo.Madre != null && hijo.Madre != this)
                 throw new InvalidOperationException("El hijo ya tiene otra madre asignada.");
@@ -164,8 +186,16 @@ namespace ArbolGenealogicoWPF
 
             if (fuente == null || !fuente.Any())
             {
-                // Caso 2: si no hay padre/madre, usar la lista de hermanos ya existente
-                fuente = Hermanos;
+                // Caso 2: si no hay padre/madre, usar la lista de hermanos de uno de mis hermanos
+                if (Hermanos.Any())
+                {
+                    var hermanoReferencia = Hermanos.First();
+                    fuente = hermanoReferencia.Hermanos;
+                }
+                else
+                {
+                    fuente = Hermanos; // fallback: mi propia lista (vacía al inicio)
+                }
             }
 
             foreach (var h in fuente)
@@ -235,6 +265,84 @@ namespace ArbolGenealogicoWPF
                 if (padre.Pareja == null)
                     padre.Pareja = madre;
             }
+        }
+
+        /// <summary>
+        /// Se asegura de que todos los hermanos estén ligados a sus respectivos padres
+        /// </summary>
+        public void LigarHermanosConPadres()
+        {
+            // Si tengo padre, asegurar que todos mis hermanos también estén en su lista de hijos
+            if (Padre != null)
+            {
+                foreach (var hermano in Hermanos)
+                {
+                    if (!Padre.Hijos.Any(h => h.Cedula == hermano.Cedula))
+                        Padre.Hijos.Add(hermano);
+
+                    if (hermano.Padre != Padre)
+                        hermano.Padre = Padre;
+                }
+            }
+
+            // Si tengo madre, asegurar que todos mis hermanos también estén en su lista de hijos
+            if (Madre != null)
+            {
+                foreach (var hermano in Hermanos)
+                {
+                    if (!Madre.Hijos.Any(h => h.Cedula == hermano.Cedula))
+                        Madre.Hijos.Add(hermano);
+
+                    if (hermano.Madre != Madre)
+                        hermano.Madre = Madre;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Se asegura de que toda pareja comparta los hijos
+        /// </summary>
+        public void LigarHijosAPareja()
+        {
+            if (Pareja == null || !Hijos.Any())
+                return;
+
+            // Tomar un hijo de referencia
+            var hijoReferencia = Hijos.First();
+
+            bool soyPadre = hijoReferencia.Padre != null && hijoReferencia.Padre.Cedula == this.Cedula;
+            bool soyMadre = hijoReferencia.Madre != null && hijoReferencia.Madre.Cedula == this.Cedula;
+
+            foreach (var hijo in Hijos)
+            {
+                if (!Pareja.Hijos.Any(h => h.Cedula == hijo.Cedula))
+                    Pareja.Hijos.Add(hijo);
+
+                // Asignar referencias en el hijo
+                if (soyPadre && hijo.Madre != Pareja)
+                    hijo.Madre = Pareja;
+
+                if (soyMadre && hijo.Padre != Pareja)
+                    hijo.Padre = Pareja;
+            }
+        }
+
+        public void QuitarPadre()
+        {
+            if (Padre != null)
+                Padre = null;
+        }
+
+        public void QuitarMadre()
+        {
+            if (Madre != null)
+                Madre = null;
+        }
+
+        public void QuitarParejaEnElOtroLado()
+        {
+            if (Pareja != null)
+                Pareja.Pareja = null;
         }
     }
 }
