@@ -1,6 +1,6 @@
 using System;
 
-namespace ArbolGenealogico.Geografia
+namespace ArbolGenealogicoWPF
 {
     /// <summary>
     /// Utilidades para cálculo de distancias geográficas usando la fórmula de Haversine.

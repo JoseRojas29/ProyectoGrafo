@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
-using ArbolGenealogico.Modelos;
-using ArbolGenealogico.Geografia;
 
 namespace ArbolGenealogicoWPF
 {
@@ -16,7 +14,7 @@ namespace ArbolGenealogicoWPF
         public EstadisticasWindow(ObservableCollection<MiembroFamilia> ListaFamiliares)
         {
             InitializeComponent();
-            familiares = listaFamiliares;
+            familiares = ListaFamiliares;
 
             CalcularYMostrarEstadisticas();
         }
@@ -84,21 +82,35 @@ namespace ArbolGenealogicoWPF
                 if (f == null)
                     continue;
 
-                if (!TryParseCoordenadas(f.Coordenadas, out double lat, out double lon))
+                if (!TryParseCoordenadas(f.CoordenadasResidencia, out double lat, out double lon))
                     continue; // ignoramos familiares sin coords válidas
 
-                // Para el grafo la fecha no es importante, usamos una por defecto
-                DateTime fecha = DateTime.Now;
+                MiembroFamilia miembro;
 
-                var miembro = new MiembroFamilia(
-                    nombre: f.Nombre ?? string.Empty,
-                    cedula: f.Cedula.ToString(),
-                    fechaNacimiento: fecha,
-                    estaVivo: true, // por ahora asumimos vivos
-                    fotografiaRuta: f.RutaFoto ?? string.Empty,
-                    latitud: lat,
-                    longitud: lon
-                );
+                if (f.EstaVivo)
+                {
+                    miembro = new MiembroFamilia(
+                    f.Nombre,
+                    f.Cedula,
+                    f.EstaVivo,
+                    null,
+                    f.FechaNacimiento,
+                    f.FotografiaRuta,
+                    f.CoordenadasResidencia
+                    );
+                }
+                else
+                {
+                    miembro = new MiembroFamilia(
+                    f.Nombre,
+                    f.Cedula,
+                    f.EstaVivo,
+                    f.Edad,
+                    f.FechaNacimiento,
+                    f.FotografiaRuta,
+                    f.CoordenadasResidencia
+                    );
+                }
 
                 lista.Add(miembro);
             }

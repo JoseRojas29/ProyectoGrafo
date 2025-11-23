@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ArbolGenealogico.Modelos;
+using System.Globalization;
 
-namespace ArbolGenealogico.Geografia
+namespace ArbolGenealogicoWPF
 {
     /// <summary>
     /// Representa una arista en el grafo geográfico entre dos miembros de la familia.
@@ -78,12 +78,19 @@ namespace ArbolGenealogico.Geografia
             for (int i = 0; i < _miembros.Count; i++)
             {
                 var origen = _miembros[i];
-                var (lat1, lon1) = origen.CoordenadasResidencia;
+
+                // CoordenadasResidencia es un string tipo "lat,lon"
+                var partesOrigen = origen.CoordenadasResidencia.Split(',');
+                double lat1 = double.Parse(partesOrigen[0], CultureInfo.InvariantCulture);
+                double lon1 = double.Parse(partesOrigen[1], CultureInfo.InvariantCulture);
 
                 for (int j = i + 1; j < _miembros.Count; j++)
                 {
                     var destino = _miembros[j];
-                    var (lat2, lon2) = destino.CoordenadasResidencia;
+
+                    var partesDestino = destino.CoordenadasResidencia.Split(',');
+                    double lat2 = double.Parse(partesDestino[0], CultureInfo.InvariantCulture);
+                    double lon2 = double.Parse(partesDestino[1], CultureInfo.InvariantCulture);
 
                     double distanciaKm = DistanciaGeografica.CalcularDistanciaKm(lat1, lon1, lat2, lon2);
 

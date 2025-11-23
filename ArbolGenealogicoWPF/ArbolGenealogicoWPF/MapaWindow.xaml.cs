@@ -1,6 +1,4 @@
-﻿using ArbolGenealogico.Geografia;
-using ArbolGenealogico.Modelos;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -17,10 +15,16 @@ namespace ArbolGenealogicoWPF
     {
         private readonly ObservableCollection<MiembroFamilia> familiares;
 
+        // Aproximación del rectángulo que cubre Costa Rica
+        private const double MinLat = 8.0;
+        private const double MaxLat = 11.5;
+        private const double MinLon = -86.0;
+        private const double MaxLon = -82.0;
+
         public MapaWindow(ObservableCollection<MiembroFamilia> ListaFamiliares)
         {
             InitializeComponent();
-            familiares = listaFamiliares;
+            familiares = ListaFamiliares;
 
             // Esperamos a que el layout esté listo para tener tamaños reales del Canvas
             Loaded += MapaWindow_Loaded;
@@ -93,20 +97,35 @@ namespace ArbolGenealogicoWPF
                 if (f == null)
                     continue;
 
-                if (!TryParseCoordenadas(f.Coordenadas, out double lat, out double lon))
+                if (!TryParseCoordenadas(f.CoordenadasResidencia, out double lat, out double lon))
                     continue;
 
-                DateTime fecha = DateTime.Now;
+                MiembroFamilia miembro;
 
-                var miembro = new MiembroFamilia(
-                    nombre: f.Nombre ?? string.Empty,
-                    cedula: f.Cedula.ToString(),
-                    fechaNacimiento: fecha,
-                    estaVivo: true,
-                    fotografiaRuta: f.RutaFoto ?? string.Empty,
-                    latitud: lat,
-                    longitud: lon
-                );
+                if (f.EstaVivo)
+                {
+                    miembro = new MiembroFamilia(
+                    f.Nombre,
+                    f.Cedula,
+                    f.EstaVivo,
+                    null,
+                    f.FechaNacimiento,
+                    f.FotografiaRuta,
+                    f.CoordenadasResidencia
+                    );
+                }
+                else
+                {
+                    miembro = new MiembroFamilia(
+                    f.Nombre,
+                    f.Cedula,
+                    f.EstaVivo,
+                    f.Edad,
+                    f.FechaNacimiento,
+                    f.FotografiaRuta,
+                    f.CoordenadasResidencia
+                    );
+                }
 
                 lista.Add(miembro);
             }
@@ -154,7 +173,7 @@ namespace ArbolGenealogicoWPF
             };
         }
 
-        private ToolTip CrearToolTipParaFamiliar(Familiar f)
+        private ToolTip CrearToolTipParaFamiliar(MiembroFamilia f)
         {
             // Aquí decides qué info mostrar
             var panel = new StackPanel();
@@ -179,11 +198,11 @@ namespace ArbolGenealogicoWPF
                 FontSize = 14
             });
 
-            if (!string.IsNullOrWhiteSpace(f.Coordenadas))
+            if (!string.IsNullOrWhiteSpace(f.CoordenadasResidencia))
             {
                 panel.Children.Add(new TextBlock
                 {
-                    Text = $"Coords: {f.Coordenadas}",
+                    Text = $"Coords: {f.CoordenadasResidencia}",
                     FontSize = 14
                 });
             }
@@ -214,7 +233,7 @@ namespace ArbolGenealogicoWPF
                     continue;
 
                 // Si no tiene coordenadas válidas, lo ignoramos
-                if (!TryParseCoordenadas(f.Coordenadas, out double lat, out double lon))
+                if (!TryParseCoordenadas(f.CoordenadasResidencia, out double lat, out double lon))
                     continue;
 
                 var punto = LatLonToPixel(lat, lon);
@@ -222,7 +241,7 @@ namespace ArbolGenealogicoWPF
                 FrameworkElement marcadorVisual;
 
                 // Intentamos usar la foto del familiar si existe
-                if (!string.IsNullOrWhiteSpace(f.RutaFoto) && File.Exists(f.RutaFoto))
+                if (!string.IsNullOrWhiteSpace(f.FotografiaRuta) && File.Exists(f.FotografiaRuta))
                 {
                     var img = new Image
                     {
@@ -236,7 +255,7 @@ namespace ArbolGenealogicoWPF
                         var bitmap = new BitmapImage();
                         bitmap.BeginInit();
                         bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.UriSource = new Uri(f.RutaFoto, UriKind.Absolute);
+                        bitmap.UriSource = new Uri(f.FotografiaRuta, UriKind.Absolute);
                         bitmap.EndInit();
 
                         img.Source = bitmap;
