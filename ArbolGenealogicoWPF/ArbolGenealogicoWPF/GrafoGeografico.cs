@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
+using System.Reflection;
 
 namespace ArbolGenealogicoWPF
 {
@@ -38,25 +39,13 @@ namespace ArbolGenealogicoWPF
         private readonly List<MiembroFamilia> _miembros;
         private readonly List<AristaGeografica> _aristas;
 
-        /// <summary>
-        /// Miembros incluidos en este grafo.
-        /// </summary>
         public IReadOnlyList<MiembroFamilia> Miembros => _miembros;
-
-        /// <summary>
-        /// Aristas (pares de miembros + distancia) del grafo.
-        /// </summary>
         public IReadOnlyList<AristaGeografica> Aristas => _aristas;
 
-        /// <summary>
-        /// Crea un grafo geográfico completo a partir de una colección de miembros.
-        /// </summary>
-        /// <param name="miembros">Colección de MiembroFamilia con coordenadas de residencia.</param>
         public GrafoGeografico(IEnumerable<MiembroFamilia> miembros)
         {
             if (miembros == null) throw new ArgumentNullException(nameof(miembros));
 
-            // Filtramos nulos y quitamos duplicados por referencia.
             _miembros = miembros
                 .Where(m => m != null)
                 .Distinct()
@@ -67,10 +56,6 @@ namespace ArbolGenealogicoWPF
             ConstruirGrafoCompleto();
         }
 
-        /// <summary>
-        /// Reconstruye el grafo asumiendo que la lista de miembros ya está cargada.
-        /// Crea un grafo completo (todas las combinaciones i &lt; j).
-        /// </summary>
         private void ConstruirGrafoCompleto()
         {
             _aristas.Clear();
@@ -79,18 +64,16 @@ namespace ArbolGenealogicoWPF
             {
                 var origen = _miembros[i];
 
-                // CoordenadasResidencia es un string tipo "lat,lon"
-                var partesOrigen = origen.CoordenadasResidencia.Split(',');
-                double lat1 = double.Parse(partesOrigen[0], CultureInfo.InvariantCulture);
-                double lon1 = double.Parse(partesOrigen[1], CultureInfo.InvariantCulture);
+                // Intentamos obtener lat/lon del miembro origen; si no hay, lo omitimos.
+                if (!TryGetLatLon(origen, out double lat1, out double lon1))
+                    continue;
 
                 for (int j = i + 1; j < _miembros.Count; j++)
                 {
                     var destino = _miembros[j];
 
-                    var partesDestino = destino.CoordenadasResidencia.Split(',');
-                    double lat2 = double.Parse(partesDestino[0], CultureInfo.InvariantCulture);
-                    double lon2 = double.Parse(partesDestino[1], CultureInfo.InvariantCulture);
+                    if (!TryGetLatLon(destino, out double lat2, out double lon2))
+                        continue;
 
                     double distanciaKm = DistanciaGeografica.CalcularDistanciaKm(lat1, lon1, lat2, lon2);
 
@@ -100,10 +83,6 @@ namespace ArbolGenealogicoWPF
             }
         }
 
-        /// <summary>
-        /// Reemplaza la lista de miembros y reconstruye el grafo completo.
-        /// Útil si la lista de MiembroFamilia cambia significativamente.
-        /// </summary>
         public void ActualizarMiembros(IEnumerable<MiembroFamilia> nuevosMiembros)
         {
             if (nuevosMiembros == null) throw new ArgumentNullException(nameof(nuevosMiembros));
@@ -118,13 +97,6 @@ namespace ArbolGenealogicoWPF
             ConstruirGrafoCompleto();
         }
 
-        /// <summary>
-        /// Obtiene las distancias desde un miembro origen a todos los demás miembros del grafo.
-        /// </summary>
-        /// <param name="origen">Miembro origen desde el cual se calculan las distancias.</param>
-        /// <returns>
-        /// Lista de tuplas (destino, distanciaKm), ordenada por distancia ascendente.
-        /// </returns>
         public List<(MiembroFamilia destino, double distanciaKm)> ObtenerDistanciasDesde(MiembroFamilia origen)
         {
             if (origen == null) throw new ArgumentNullException(nameof(origen));
@@ -144,17 +116,10 @@ namespace ArbolGenealogicoWPF
             return resultado;
         }
 
-        /// <summary>
-        /// Versión de conveniencia: obtiene distancias desde la cédula de un miembro.
-        /// Si la cédula no existe en el grafo, devuelve una lista vacía.
-        /// </summary>
-        public List<(MiembroFamilia destino, double distanciaKm)> ObtenerDistanciasDesdeCedula(string cedula)
+        // Firma que pediste: la cedula ya es int y no la validamos aquí.
+        public List<(MiembroFamilia destino, double distanciaKm)> ObtenerDistanciasDesdeCedula(int cedula)
         {
-            if (string.IsNullOrWhiteSpace(cedula))
-                throw new ArgumentException("La cédula no puede ser nula o vacía.", nameof(cedula));
-
-            var origen = _miembros
-                .FirstOrDefault(m => string.Equals(m.Cedula, cedula, StringComparison.OrdinalIgnoreCase));
+            var origen = _miembros.FirstOrDefault(m => m.Cedula == cedula);
 
             if (origen == null)
                 return new List<(MiembroFamilia, double)>();
@@ -162,10 +127,6 @@ namespace ArbolGenealogicoWPF
             return ObtenerDistanciasDesde(origen);
         }
 
-        /// <summary>
-        /// Obtiene el par de miembros que viven más cerca entre sí.
-        /// Devuelve null si no hay suficientes miembros para formar al menos una arista.
-        /// </summary>
         public (MiembroFamilia A, MiembroFamilia B, double DistanciaKm)? ObtenerParMasCercano()
         {
             var arista = _aristas
@@ -179,10 +140,6 @@ namespace ArbolGenealogicoWPF
             return (arista.A, arista.B, arista.DistanciaKm);
         }
 
-        /// <summary>
-        /// Obtiene el par de miembros que viven más lejos entre sí.
-        /// Devuelve null si no hay suficientes miembros para formar al menos una arista.
-        /// </summary>
         public (MiembroFamilia A, MiembroFamilia B, double DistanciaKm)? ObtenerParMasLejano()
         {
             var arista = _aristas
@@ -196,10 +153,6 @@ namespace ArbolGenealogicoWPF
             return (arista.A, arista.B, arista.DistanciaKm);
         }
 
-        /// <summary>
-        /// Calcula la distancia promedio entre todos los pares de miembros del grafo.
-        /// Si no hay aristas, devuelve 0.
-        /// </summary>
         public double ObtenerDistanciaPromedio()
         {
             var distanciasValidas = _aristas
@@ -211,6 +164,123 @@ namespace ArbolGenealogicoWPF
                 return 0.0;
 
             return distanciasValidas.Average();
+        }
+
+        // -------------------
+        // Helper: Extrae lat/lon de un MiembroFamilia de forma tolerante.
+        // Soporta:
+        //  - propiedades públicas 'Latitud' y 'Longitud' de tipo double (preferido)
+        //  - propiedad 'CoordenadasResidencia' como string "lat,lon"
+        //  - o ValueTuple<double,double> si existiera (no es tu caso actual, pero lo cubre)
+        // -------------------
+        private static bool TryGetLatLon(MiembroFamilia m, out double lat, out double lon)
+        {
+            lat = 0;
+            lon = 0;
+            if (m == null) return false;
+
+            var t = m.GetType();
+
+            // 1) Propiedades Latitud / Longitud
+            var propLat = t.GetProperty("Latitud", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+                          ?? t.GetProperty("Latitude", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            var propLon = t.GetProperty("Longitud", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+                          ?? t.GetProperty("Longitude", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+            if (propLat != null && propLon != null)
+            {
+                var vLat = propLat.GetValue(m);
+                var vLon = propLon.GetValue(m);
+
+                if (vLat is double dvLat && vLon is double dvLon)
+                {
+                    lat = dvLat; lon = dvLon;
+                    return true;
+                }
+
+                // si vienen como string numérico
+                if (vLat is string sLat && vLon is string sLon &&
+                    double.TryParse(sLat, NumberStyles.Float, CultureInfo.InvariantCulture, out double pLat) &&
+                    double.TryParse(sLon, NumberStyles.Float, CultureInfo.InvariantCulture, out double pLon))
+                {
+                    lat = pLat; lon = pLon;
+                    return true;
+                }
+            }
+
+            // 2) Propiedad CoordenadasResidencia (podría ser string "lat,lon" o tupla)
+            var propCoords = t.GetProperty("CoordenadasResidencia", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            if (propCoords != null)
+            {
+                var v = propCoords.GetValue(m);
+                if (v == null) return false;
+
+                // si es ValueTuple<double,double>
+                if (v is ValueTuple<double, double> vt)
+                {
+                    lat = vt.Item1; lon = vt.Item2;
+                    return true;
+                }
+
+                // si es algún ValueTuple boxed (ej. System.ValueTuple`2), intentar leer Item1/Item2
+                var vtType = v.GetType();
+                if (vtType.IsValueType && vtType.FullName?.StartsWith("System.ValueTuple") == true)
+                {
+                    try
+                    {
+                        var f1 = vtType.GetField("Item1") ?? (MemberInfo)vtType.GetProperty("Item1");
+                        var f2 = vtType.GetField("Item2") ?? (MemberInfo)vtType.GetProperty("Item2");
+
+                        object raw1 = null, raw2 = null;
+                        if (f1 is FieldInfo fi1) raw1 = fi1.GetValue(v);
+                        else if (f1 is PropertyInfo pi1) raw1 = pi1.GetValue(v);
+                        if (f2 is FieldInfo fi2) raw2 = fi2.GetValue(v);
+                        else if (f2 is PropertyInfo pi2) raw2 = pi2.GetValue(v);
+
+                        if (raw1 is double rd1 && raw2 is double rd2)
+                        {
+                            lat = rd1; lon = rd2;
+                            return true;
+                        }
+                    }
+                    catch { /* ignore */ }
+                }
+
+                // si es string "lat,lon"
+                if (v is string s)
+                {
+                    var parts = s.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length == 2 &&
+                        double.TryParse(parts[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double p1) &&
+                        double.TryParse(parts[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double p2))
+                    {
+                        lat = p1; lon = p2;
+                        return true;
+                    }
+                }
+            }
+
+            // 3) Propiedades genéricas 'Coordenadas' o 'Coords' como string
+            var propGeneric = t.GetProperty("Coordenadas", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+                              ?? t.GetProperty("Coords", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+            if (propGeneric != null)
+            {
+                var gv = propGeneric.GetValue(m);
+                if (gv is string gs)
+                {
+                    var parts = gs.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length == 2 &&
+                        double.TryParse(parts[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double p1) &&
+                        double.TryParse(parts[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double p2))
+                    {
+                        lat = p1; lon = p2;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
