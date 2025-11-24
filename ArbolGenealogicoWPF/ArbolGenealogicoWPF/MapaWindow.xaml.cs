@@ -32,7 +32,13 @@ namespace ArbolGenealogicoWPF
 
         private void MapaWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            
+            // Limpiamos el canvas sólo UNA VEZ antes de dibujar todo
+            MapaCanvas.Children.Clear();
+
+            // Primero dibujamos la ruta y distancias (queda abajo)
+            DibujarRutaConDistancias();
+
+            // Luego los marcadores encima
             DibujarMarcadores();
         }
 
@@ -105,9 +111,157 @@ namespace ArbolGenealogicoWPF
             return new ToolTip { Content = panel };
         }
 
+
+        /// <summary>
+        /// Dibuja una polyline que une todos los familiares en el orden de la colección
+        /// y añade etiquetas con la distancia entre todos los pares de nodos (i,j) con i<j.
+        /// </summary>
+        private void DibujarRutaConDistancias()
+        {
+            if (MapaCanvas.ActualWidth <= 0 || MapaCanvas.ActualHeight <= 0)
+                return;
+
+            // Obtener la lista de miembros con coordenadas válidas
+            var lista = new List<MiembroFamilia>();
+            foreach (var f in familiares)
+            {
+                if (f == null) continue;
+                lista.Add(f);
+            }
+
+            if (lista.Count < 2)
+                return; // nada que unir
+
+            // Construir la Polyline en pixeles (orden de ingreso)
+            var pts = new PointCollection();
+            var pixelPoints = new List<Point>();
+            foreach (var f in lista)
+            {
+                var p = LatLonToPixel(f.Latitud, f.Longitud);
+                pts.Add(new System.Windows.Point(p.X, p.Y));
+                pixelPoints.Add(p);
+            }
+
+            // Crear polyline principal
+            var mainLine = new Polyline
+            {
+                Stroke = Brushes.LightGray,                  // color gris claro
+                StrokeThickness = 1.5,                       // grosor similar al de las otras
+                StrokeDashArray = new DoubleCollection { 4, 4 }, // patrón dash
+                StrokeLineJoin = PenLineJoin.Round,
+                Opacity = 0.85,
+                Points = pts
+            };
+
+
+            // Añadimos al canvas PRIMERO para que los marcadores queden encima
+            MapaCanvas.Children.Add(mainLine);
+
+            // Parámetros para las etiquetas y líneas entre TODOS los pares
+            double labelOffsetPx = 10.0; // desplazamiento perpendicular base (ajustable)
+            int n = pixelPoints.Count;
+
+            // Recorremos todos los pares (i<j) para no duplicar
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = i + 1; j < n; j++)
+                {
+                    var a = pixelPoints[i];
+                    var b = pixelPoints[j];
+
+                    // Dibujar una línea fina y discontinua entre a y b (opcional)
+                    var pairLine = new Polyline
+                    {
+                        Stroke = Brushes.LightYellow,
+                        StrokeThickness = 1.5,
+                        StrokeDashArray = new DoubleCollection { 4, 4 },
+                        Opacity = 0.85,
+                        Points = new PointCollection { new System.Windows.Point(a.X, a.Y), new System.Windows.Point(b.X, b.Y) }
+                    };
+                    MapaCanvas.Children.Add(pairLine);
+
+                    // calcular distancia real (metros) usando Haversine
+                    double distMeters = HaversineDistance(lista[i].Latitud, lista[i].Longitud, lista[j].Latitud, lista[j].Longitud);
+
+                    // formatear texto (m o km)
+                    string distText = distMeters >= 1000 ? $"{(distMeters / 1000.0):F2} km" : $"{Math.Round(distMeters)} m";
+
+                    // punto medio en pixeles
+                    double midX = (a.X + b.X) / 2.0;
+                    double midY = (a.Y + b.Y) / 2.0;
+
+                    // perpendicular vector (-dy, dx) normalizado
+                    double dx = b.X - a.X;
+                    double dy = b.Y - a.Y;
+                    double len = Math.Sqrt(dx * dx + dy * dy);
+                    double offsetX = 0;
+                    double offsetY = 0;
+                    if (len > 0.0001)
+                    {
+                        // Alternamos el lado para evitar solapamiento directo de etiquetas
+                        int side = ((i + j) % 2 == 0) ? 1 : -1;
+                        offsetX = -dy / len * labelOffsetPx * side;
+                        offsetY = dx / len * labelOffsetPx * side;
+                    }
+
+                    // Crear etiqueta con Border + TextBlock (no interactiva)
+                    var text = new TextBlock
+                    {
+                        Text = distText,
+                        FontSize = 11,
+                        Padding = new Thickness(4, 2, 4, 2),
+                        Foreground = Brushes.Black,
+                        TextWrapping = TextWrapping.NoWrap
+                    };
+
+                    var labelBorder = new Border
+                    {
+                        CornerRadius = new CornerRadius(4),
+                        Background = new SolidColorBrush(Color.FromArgb(230, 255, 255, 255)),
+                        BorderBrush = new SolidColorBrush(Color.FromArgb(80, 0, 0, 0)),
+                        BorderThickness = new Thickness(1),
+                        Child = text,
+                        IsHitTestVisible = false
+                    };
+
+                    // Medir tamaño para centrar correctamente (medimos el Border)
+                    labelBorder.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                    var desired = labelBorder.DesiredSize;
+
+                    // Posición final en canvas (centrada en el punto medio + offset perpendicular)
+                    double left = midX + offsetX - desired.Width / 2.0;
+                    double top = midY + offsetY - desired.Height / 2.0;
+
+                    Canvas.SetLeft(labelBorder, left);
+                    Canvas.SetTop(labelBorder, top);
+
+                    MapaCanvas.Children.Add(labelBorder);
+                }
+            }
+        }
+
+
+
+        /// <summary>
+        /// Calcula distancia Haversine en metros entre dos pares lat/lon.
+        /// </summary>
+        private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371000.0; // radio de la Tierra en metros
+            double toRad = Math.PI / 180.0;
+            double dLat = (lat2 - lat1) * toRad;
+            double dLon = (lon2 - lon1) * toRad;
+            double a = Math.Sin(dLat / 2.0) * Math.Sin(dLat / 2.0) +
+                       Math.Cos(lat1 * toRad) * Math.Cos(lat2 * toRad) *
+                       Math.Sin(dLon / 2.0) * Math.Sin(dLon / 2.0);
+            double c = 2.0 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
+        }
+
+
         private void DibujarMarcadores()
         {
-            MapaCanvas.Children.Clear();
+            
 
             if (MapaCanvas.ActualWidth <= 0 || MapaCanvas.ActualHeight <= 0)
                 return;
