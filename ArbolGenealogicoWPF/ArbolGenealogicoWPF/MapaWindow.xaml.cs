@@ -32,60 +32,10 @@ namespace ArbolGenealogicoWPF
 
         private void MapaWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            // 1. Mostrar estadísticas usando tu grafo
-            CalcularYMostrarEstadisticasMapa();
-
-            // 2. Dibujar los marcadores sobre el mapa
+            
             DibujarMarcadores();
         }
 
-        // ============================
-        //   ESTADÍSTICAS (similar a EstadisticasWindow)
-        // ============================
-        private void CalcularYMostrarEstadisticasMapa()
-        {
-            // Asumimos que la lista 'familiares' ya contiene MiembroFamilia válidos
-            List<MiembroFamilia> miembros = ConvertirAFamiliaModelo();
-
-            // Si se quiere eliminar por completo la validación de conteo, comentar la siguiente sección.
-            if (miembros.Count < 2)
-            {
-                string msg = "Se requieren al menos 2 familiares con coordenadas válidas.";
-                Farthest.Text = msg;
-                Closest.Text = msg;
-                Promedio.Text = "-";
-                return;
-            }
-
-            var grafo = new GrafoGeografico(miembros);
-
-            var parCercano = grafo.ObtenerParMasCercano();
-            if (parCercano != null)
-            {
-                Closest.Text =
-                    $"Más cercanos: {parCercano.Value.A.Nombre} y {parCercano.Value.B.Nombre} " +
-                    $"- {parCercano.Value.DistanciaKm:F2} km";
-            }
-            else
-            {
-                Closest.Text = "No hay suficientes datos para el par más cercano.";
-            }
-
-            var parLejano = grafo.ObtenerParMasLejano();
-            if (parLejano != null)
-            {
-                Farthest.Text =
-                    $"Más lejanos: {parLejano.Value.A.Nombre} y {parLejano.Value.B.Nombre} " +
-                    $"- {parLejano.Value.DistanciaKm:F2} km";
-            }
-            else
-            {
-                Farthest.Text = "No hay suficientes datos para el par más lejano.";
-            }
-
-            double promedioKm = grafo.ObtenerDistanciaPromedio();
-            Promedio.Text = $"Promedio: {promedioKm:F2} km";
-        }
 
         // ============================
         //   CONVERSIÓN FAMILIAR -> MiembroFamilia
@@ -226,6 +176,8 @@ namespace ArbolGenealogicoWPF
 
         private Point LatLonToPixel(double lat, double lon)
         {
+            Rect imgRect = ObtenerRectImagenRenderizada();
+
             double width = MapaCanvas.ActualWidth;
             double height = MapaCanvas.ActualHeight;
 
@@ -243,5 +195,38 @@ namespace ArbolGenealogicoWPF
 
             return new Point(x, y);
         }
+
+        private Rect ObtenerRectImagenRenderizada()
+        {
+            double ctrlW = MapaImage.ActualWidth;
+            double ctrlH = MapaImage.ActualHeight;
+
+            if (!(MapaImage.Source is BitmapSource bmp) || ctrlW <= 0 || ctrlH <= 0)
+                return new Rect(0, 0, ctrlW, ctrlH);
+
+            // tamaño del bitmap en píxeles
+            double bmpW = bmp.PixelWidth;
+            double bmpH = bmp.PixelHeight;
+
+            // scale según el Stretch (Uniform o UniformToFill)
+            double scale = 1.0;
+            if (MapaImage.Stretch == Stretch.Uniform)
+                scale = Math.Min(ctrlW / bmpW, ctrlH / bmpH);
+            else if (MapaImage.Stretch == Stretch.UniformToFill)
+                scale = Math.Max(ctrlW / bmpW, ctrlH / bmpH);
+            else
+                scale = Math.Min(ctrlW / bmpW, ctrlH / bmpH); // fallback
+
+            double renderW = bmpW * scale;
+            double renderH = bmpH * scale;
+
+            // offset (puede ser negativo cuando usamos UniformToFill)
+            double offsetX = (ctrlW - renderW) / 2.0;
+            double offsetY = (ctrlH - renderH) / 2.0;
+
+            // Devolvemos el rect con coordenadas relativas al control (y por ende al Canvas si están alineados)
+            return new Rect(offsetX, offsetY, renderW, renderH);
+        }
+
     }
 }

@@ -97,49 +97,23 @@
             </Grid>
         </Border>
 
-        <!-- Contenido principal -->
-        <Grid Grid.Row="1" Margin="16">
-            <!-- ahora dos columnas: izq = stats, der = mapa -->
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="2*" />
-            </Grid.ColumnDefinitions>
+		<!-- Reemplaza la parte <Grid Grid.Row="1" Margin="16"> ... </Grid> por esto -->
+		<Grid Grid.Row="1" Margin="8" ClipToBounds="True">
+			<!-- Una sola columna: mapa centrado y grande -->
+			<Image x:Name="MapaImage"
+				   Source="Resources/MapaCR.png"
+				   Stretch="UniformToFill"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Center"
+				   SnapsToDevicePixels="True"/>
 
-            <!-- Columna izquierda: textos de estadísticas -->
-            <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                <TextBlock x:Name="Farthest"
-                           Text="Vacío esperando mensaje"
-                           FontWeight="Bold"
-                           FontSize="28"
-                           Margin="0,0,0,8"/>
-                <TextBlock x:Name="Closest"
-                           Text="Vacío esperando mensaje"
-                           FontWeight="Bold"
-                           FontSize="28"
-                           Margin="0,0,0,8"/>
-                <TextBlock x:Name="Promedio"
-                           Text="Vacío esperando mensaje"
-                           FontWeight="Bold"
-                           FontSize="28"
-                           Margin="0,0,0,8"/>
-            </StackPanel>
+			<!-- Canvas encima del mapa: mismo tamaño y capturable -->
+			<Canvas x:Name="MapaCanvas"
+					IsHitTestVisible="True"
+					HorizontalAlignment="Stretch"
+					VerticalAlignment="Stretch" />
+		</Grid>
 
-            <!-- Columna derecha: mapa + canvas de marcadores -->
-            <Grid Grid.Column="1">
-                <!-- Imagen del mapa de Costa Rica -->
-                <Image x:Name="MapaImage"
-                       Source="Resources/MapaCR.png"
-                       Stretch="Uniform"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch" />
-
-                <!-- Canvas transparente encima del mapa para dibujar puntos -->
-                <Canvas x:Name="MapaCanvas"
-                        IsHitTestVisible="True"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch" />
-            </Grid>
-        </Grid>
-    </Grid>
+	</Grid>
 
 </local:WindowBaseLogica>
