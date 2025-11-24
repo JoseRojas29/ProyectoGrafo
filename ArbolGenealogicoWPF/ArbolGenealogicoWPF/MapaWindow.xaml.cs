@@ -44,8 +44,10 @@ namespace ArbolGenealogicoWPF
         // ============================
         private void CalcularYMostrarEstadisticasMapa()
         {
+            // Asumimos que la lista 'familiares' ya contiene MiembroFamilia válidos
             List<MiembroFamilia> miembros = ConvertirAFamiliaModelo();
 
+            // Si se quiere eliminar por completo la validación de conteo, comentar la siguiente sección.
             if (miembros.Count < 2)
             {
                 string msg = "Se requieren al menos 2 familiares con coordenadas válidas.";
@@ -87,74 +89,12 @@ namespace ArbolGenealogicoWPF
 
         // ============================
         //   CONVERSIÓN FAMILIAR -> MiembroFamilia
+        //   (Simplificada: asumimos que 'familiares' ya contiene MiembroFamilia válidos)
         // ============================
         private List<MiembroFamilia> ConvertirAFamiliaModelo()
         {
-            var lista = new List<MiembroFamilia>();
-
-            foreach (var f in familiares)
-            {
-                if (f == null)
-                    continue;
-
-                if (!TryParseCoordenadas(f.CoordenadasResidencia, out double lat, out double lon))
-                    continue;
-
-                MiembroFamilia miembro;
-
-                if (f.EstaVivo)
-                {
-                    miembro = new MiembroFamilia(
-                    f.Nombre,
-                    f.Cedula,
-                    f.EstaVivo,
-                    null,
-                    f.FechaNacimiento,
-                    f.FotografiaRuta,
-                    f.CoordenadasResidencia
-                    );
-                }
-                else
-                {
-                    miembro = new MiembroFamilia(
-                    f.Nombre,
-                    f.Cedula,
-                    f.EstaVivo,
-                    f.Edad,
-                    f.FechaNacimiento,
-                    f.FotografiaRuta,
-                    f.CoordenadasResidencia
-                    );
-                }
-
-                lista.Add(miembro);
-            }
-
-            return lista;
-        }
-
-        private bool TryParseCoordenadas(string? texto, out double latitud, out double longitud)
-        {
-            latitud = 0;
-            longitud = 0;
-
-            if (string.IsNullOrWhiteSpace(texto))
-                return false;
-
-            var partes = texto.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            if (partes.Length != 2)
-                return false;
-
-            var style = NumberStyles.Float;
-            var culture = CultureInfo.InvariantCulture;
-
-            if (!double.TryParse(partes[0].Trim(), style, culture, out latitud))
-                return false;
-
-            if (!double.TryParse(partes[1].Trim(), style, culture, out longitud))
-                return false;
-
-            return true;
+            // Ya son MiembroFamilia: devolvemos una copia rápida
+            return new List<MiembroFamilia>(familiares);
         }
 
         // ============================
@@ -175,7 +115,7 @@ namespace ArbolGenealogicoWPF
 
         private ToolTip CrearToolTipParaFamiliar(MiembroFamilia f)
         {
-            // Aquí decides qué info mostrar
+            // Asumimos que f no es null y que todas sus propiedades están inicializadas.
             var panel = new StackPanel();
 
             panel.Children.Add(new TextBlock
@@ -191,34 +131,29 @@ namespace ArbolGenealogicoWPF
                 FontSize = 14
             });
 
-            // 👉 Edad (si la propiedad existe en Familiar)
+            // Edad: asumimos que la propiedad existe y tiene valor correcto
             panel.Children.Add(new TextBlock
             {
                 Text = $"Edad: {f.Edad} años",
                 FontSize = 14
             });
 
-            if (!string.IsNullOrWhiteSpace(f.CoordenadasResidencia))
+            // Mostrar coordenadas usando propiedades Numéricas (asumidas)
+            panel.Children.Add(new TextBlock
             {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = $"Coords: {f.CoordenadasResidencia}",
-                    FontSize = 14
-                });
-            }
+                Text = $"Coords: {f.Latitud.ToString(CultureInfo.InvariantCulture)},{f.Longitud.ToString(CultureInfo.InvariantCulture)}",
+                FontSize = 14
+            });
 
-            if (f.FechaNacimiento.HasValue)
+            // Fecha de nacimiento: usamos directamente (no nullable)
+            panel.Children.Add(new TextBlock
             {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = $"Nac: {f.FechaNacimiento.Value:dd/MM/yyyy}",
-                    FontSize = 14
-                });
-            }
+                Text = $"Nac: {f.FechaNacimiento:dd/MM/yyyy}",
+                FontSize = 14
+            });
 
             return new ToolTip { Content = panel };
         }
-
 
         private void DibujarMarcadores()
         {
@@ -229,59 +164,50 @@ namespace ArbolGenealogicoWPF
 
             foreach (var f in familiares)
             {
-                if (f == null)
-                    continue;
-
-                // Si no tiene coordenadas válidas, lo ignoramos
-                if (!TryParseCoordenadas(f.CoordenadasResidencia, out double lat, out double lon))
-                    continue;
+                // Asumimos que 'f' es MiembroFamilia válido y que tiene Latitud/Longitud
+                double lat = f.Latitud;
+                double lon = f.Longitud;
 
                 var punto = LatLonToPixel(lat, lon);
 
                 FrameworkElement marcadorVisual;
 
-                // Intentamos usar la foto del familiar si existe
-                if (!string.IsNullOrWhiteSpace(f.FotografiaRuta) && File.Exists(f.FotografiaRuta))
+                // Intentamos usar la foto del familiar siempre (sin verificar File.Exists)
+                Image img = new Image
                 {
-                    var img = new Image
-                    {
-                        Width = 40,
-                        Height = 40,
-                        Stretch = Stretch.UniformToFill,
-                    };
+                    Width = 40,
+                    Height = 40,
+                    Stretch = Stretch.UniformToFill,
+                };
 
-                    try
-                    {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.UriSource = new Uri(f.FotografiaRuta, UriKind.Absolute);
-                        bitmap.EndInit();
+                bool imageLoaded = false;
+                try
+                {
+                    // Intento directo de cargar la imagen; si falla, caemos al fallback.
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(f.FotografiaRuta, UriKind.Absolute);
+                    bitmap.EndInit();
 
-                        img.Source = bitmap;
-                    }
-                    catch
-                    {
-                        // Si falla la carga de la imagen, caeremos al marcador por defecto
-                        img = null;
-                    }
+                    img.Source = bitmap;
+                    imageLoaded = true;
+                }
+                catch
+                {
+                    imageLoaded = false;
+                }
 
-                    if (img != null)
-                    {
-                        // (Opcional) hacer el recorte circular del avatar
-                        var clip = new EllipseGeometry(new Point(20, 20), 20, 20);
-                        img.Clip = clip;
-
-                        marcadorVisual = img;
-                    }
-                    else
-                    {
-                        marcadorVisual = CrearMarcadorCircularFallback();
-                    }
+                if (imageLoaded)
+                {
+                    // (Opcional) hacer el recorte circular del avatar
+                    var clip = new EllipseGeometry(new Point(20, 20), 20, 20);
+                    img.Clip = clip;
+                    marcadorVisual = img;
                 }
                 else
                 {
-                    // Sin foto -> usamos un punto circular como fallback
+                    // Sin foto o falla al cargar -> usamos un punto circular como fallback
                     marcadorVisual = CrearMarcadorCircularFallback();
                 }
 
@@ -297,7 +223,6 @@ namespace ArbolGenealogicoWPF
                 MapaCanvas.Children.Add(marcadorVisual);
             }
         }
-
 
         private Point LatLonToPixel(double lat, double lon)
         {
