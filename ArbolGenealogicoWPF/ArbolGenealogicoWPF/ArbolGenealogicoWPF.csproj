@@ -9,7 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\MapaCR.png" />
+  </ItemGroup>
+
+  <ItemGroup>
 	<Resource Include="Fonts\Orbitron-VariableFont_wght.ttf" />
+	<Resource Include="Resources\MapaCR.png">
+	  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	</Resource>
   </ItemGroup>
 
 </Project>

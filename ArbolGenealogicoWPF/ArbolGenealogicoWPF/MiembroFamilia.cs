@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
+using System.Globalization;
 
 namespace ArbolGenealogicoWPF
 {
@@ -20,7 +21,9 @@ namespace ArbolGenealogicoWPF
         public int? Edad { get; private set; }
         public bool EstaVivo { get; private set; }
         public string FotografiaRuta { get; private set; }
-        public (double Latitud, double Longitud) CoordenadasResidencia { get; private set; }
+        public string CoordenadasResidencia { get; private set; }
+        public double Latitud { get; private set; }
+        public double Longitud { get; private set; }
 
         // ==========================================
         // RELACIONES FAMILIARES
@@ -40,9 +43,8 @@ namespace ArbolGenealogicoWPF
             bool estaVivo,
             int? edad,
             DateTime fechaNacimiento,
-            string fotografiaRuta = "",
-            double latitud = 0,
-            double longitud = 0)
+            string fotografiaRuta,
+            string coordenadasResidencia)
         {
             Nombre = nombre;
             Cedula = cedula;
@@ -50,7 +52,10 @@ namespace ArbolGenealogicoWPF
             EstaVivo = estaVivo;
 
             FotografiaRuta = fotografiaRuta;
-            CoordenadasResidencia = (latitud, longitud);
+            CoordenadasResidencia = coordenadasResidencia;
+            TryParseCoordenadas(coordenadasResidencia, out double lat, out double lon);
+            Latitud = lat;
+            Longitud = lon;
 
             Hijos = new List<MiembroFamilia>();
             Hermanos = new List<MiembroFamilia>();
@@ -343,6 +348,31 @@ namespace ArbolGenealogicoWPF
         {
             if (Pareja != null)
                 Pareja.Pareja = null;
+        }
+
+        private bool TryParseCoordenadas(string? texto, out double latitud, out double longitud)
+        {
+            latitud = 0;
+            longitud = 0;
+
+            if (string.IsNullOrWhiteSpace(texto))
+                return false;
+
+            // Esperamos algo como: "9.93,-84.08"
+            var partes = texto.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (partes.Length != 2)
+                return false;
+
+            var style = NumberStyles.Float;
+            var culture = CultureInfo.InvariantCulture;
+
+            if (!double.TryParse(partes[0].Trim(), style, culture, out latitud))
+                return false;
+
+            if (!double.TryParse(partes[1].Trim(), style, culture, out longitud))
+                return false;
+
+            return true;
         }
     }
 }

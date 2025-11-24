@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -138,7 +138,6 @@ namespace ArbolGenealogicoWPF
             ArbolCanvas.Children.Clear();
 
             // 4. Crear el nuevo miembro (el primero de todos)
-            var coordsAux = ParsearCoordenadas(CoordenadasInput.Text.Trim());
 
             MiembroFamilia f;
 
@@ -151,8 +150,7 @@ namespace ArbolGenealogicoWPF
                     null,
                     fechaNacimiento,
                     rutaFotoTemporal,
-                    coordsAux.Latitud,
-                    coordsAux.Longitud
+                    CoordenadasInput.Text.Trim()
                 );
             }
             else
@@ -164,8 +162,7 @@ namespace ArbolGenealogicoWPF
                     edadValida,
                     fechaNacimiento,
                     rutaFotoTemporal,
-                    coordsAux.Latitud,
-                    coordsAux.Longitud
+                    CoordenadasInput.Text.Trim()
                 );
             }
 
@@ -185,8 +182,6 @@ namespace ArbolGenealogicoWPF
                 return;
 
             // 2. Crear el nuevo miembro
-            var coordsAux = ParsearCoordenadas(CoordenadasInput.Text.Trim());
-
             MiembroFamilia f;
 
             if (estaVivo)
@@ -198,8 +193,7 @@ namespace ArbolGenealogicoWPF
                     null,
                     fechaNacimiento,
                     rutaFotoTemporal,
-                    coordsAux.Latitud,
-                    coordsAux.Longitud
+                    CoordenadasInput.Text.Trim()
                 );
             }
             else
@@ -211,8 +205,7 @@ namespace ArbolGenealogicoWPF
                     edadValida,
                     fechaNacimiento,
                     rutaFotoTemporal,
-                    coordsAux.Latitud,
-                    coordsAux.Longitud
+                    CoordenadasInput.Text.Trim()
                 );
             }
 
@@ -383,10 +376,41 @@ namespace ArbolGenealogicoWPF
 
             fechaNacimiento = fechaValidada;
 
-            // Coordenadas obligatorias (luego se puede hacer una verificación para ver si son válidas en el sistema)
+            // Coordenadas obligatorias
             if (string.IsNullOrWhiteSpace(CoordenadasInput.Text))
             {
                 return MostrarError("Por favor ingrese las coordenadas.");
+            }
+
+            // Validar formato de coordenadas
+            var partes = CoordenadasInput.Text.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            if (partes.Length != 2)
+            {
+                return MostrarError("Las coordenadas deben tener el formato 'latitud,longitud'.");
+            }
+
+            var style = NumberStyles.Float;
+            var culture = CultureInfo.InvariantCulture;
+
+            if (!double.TryParse(partes[0].Trim(), style, culture, out double latitud))
+            {
+                return MostrarError("La latitud no es válida.");
+            }
+
+            if (!double.TryParse(partes[1].Trim(), style, culture, out double longitud))
+            {
+                return MostrarError("La longitud no es válida.");
+            }
+
+            // Verificar rango permitido
+            if (latitud < 8.0 || latitud > 11.5)
+            {
+                return MostrarError($"La latitud debe estar entre 8.0 y 11.5.");
+            }
+
+            if (longitud < -86.0 || longitud > -82.0)
+            {
+                return MostrarError($"La longitud debe estar entre -86.0 y -82.0.");
             }
 
             // Validar edad solo si el CheckBox está marcado
@@ -522,25 +546,6 @@ namespace ArbolGenealogicoWPF
                 if (he != null) vecinos.Add(he);
 
             return vecinos.ToList();
-        }
-
-        // Sujeto a cambios según la lógica del otro grafo de distancias
-        private (double Latitud, double Longitud) ParsearCoordenadas(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return (0, 0);
-
-            var partes = input.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            if (partes.Length != 2)
-                return (0, 0);
-
-            if (double.TryParse(partes[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double lat) &&
-                double.TryParse(partes[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double lon))
-            {
-                return (lat, lon);
-            }
-
-            return (0, 0);
         }
 
         // ============================================
