@@ -464,7 +464,8 @@
 			</ScrollViewer>
 
 			<!-- Canvas para dibujar el árbol + ListView oculto -->
-			<ScrollViewer Grid.Column="1"
+			<ScrollViewer x:Name="ArbolScrollViewer"
+						  Grid.Column="1"
 						  HorizontalScrollBarVisibility="Auto"
 						  VerticalScrollBarVisibility="Auto">
 
@@ -476,10 +477,15 @@
 
 					<!-- Canvas visible para dibujar el árbol -->
 					<Canvas x:Name="ArbolCanvas"
-							Background="White"
-							MinWidth="2000"
-							MinHeight="2000"
-							MouseLeftButtonDown="ArbolCanvas_MouseLeftButtonDown"/>
+							Background="Black"
+							MinWidth="5000"
+							MinHeight="5000"
+							MouseLeftButtonDown="ArbolCanvas_MouseLeftButtonDown">
+						<Canvas.RenderTransform>
+							<!-- Trasladar el origen del canvas -->
+							<TranslateTransform X="150" Y="50"/>
+						</Canvas.RenderTransform>
+					</Canvas>
 				</Grid>
 			</ScrollViewer>
 		</Grid>

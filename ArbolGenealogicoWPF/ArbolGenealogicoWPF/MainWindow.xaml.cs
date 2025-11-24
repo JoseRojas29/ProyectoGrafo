@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -170,11 +173,8 @@ namespace ArbolGenealogicoWPF
             familiares.Add(f);
             indicePorCedula[cedulaValida] = f;
 
-            // 5. Recalcular layout completo y redibujar
-            var coords = ArbolGenealogicoService.CalcularLayoutCompleto(familiares);
+            // 6. Recalcular layout completo, redibujar y limpiar formulario
             RedibujarArbol(ArbolCanvas, familiares);
-
-            // 7. Limpiar formulario para el siguiente ingreso
             LimpiarFormulario();
         }
 
@@ -216,19 +216,24 @@ namespace ArbolGenealogicoWPF
                 );
             }
 
-            // 3. Guardar en las estructuras
-            familiares.Add(f);
-            indicePorCedula[cedulaValida] = f;
-
-            // 4. Agregar relación con el miembro seleccionado
+            // 3. Obtener seleccionado y parentesco
             int parentescoSeleccionado = ParentescoComboBox.SelectedIndex;
             MiembroFamilia seleccionado = (MiembroFamilia)FamiliaresList.SelectedItem;
-            ArbolGenealogicoService.AgregarNodo(this, seleccionado, f, parentescoSeleccionado);
 
-            // 5. Recalcular layout completo y redibujar
+            // 4. Intentar agregar la relación, si no es posible, salir
+            bool exito = ArbolGenealogicoService.AgregarNodo(this, seleccionado, f, parentescoSeleccionado);
+
+            if (!exito)
+            {
+                return;
+            }
+
+            // 5. Guardar en las estructuras
+            familiares.Add(f);
+            indicePorCedula[cedulaValida] = f;
+            
+            // 6. Redibujar el árbol y limpiar el formulario
             RedibujarArbol(ArbolCanvas, familiares);
-
-            // 6. Limpiar formulario para el siguiente ingreso
             LimpiarFormulario();
         }
 
@@ -551,22 +556,12 @@ namespace ArbolGenealogicoWPF
             var lista = miembros.ToList();
             arbolCanvas.Children.Clear();
 
-            // 1. Capa invisible al fondo (para detectar clics en áreas vacías)
-            var fondo = new Rectangle
-            {
-                Width = arbolCanvas.ActualWidth,
-                Height = arbolCanvas.ActualHeight,
-                Fill = Brushes.Transparent // invisible pero clickeable
-            };
-            fondo.MouseLeftButtonDown += ArbolCanvas_MouseLeftButtonDown;
-            arbolCanvas.Children.Add(fondo);
-
-            // 2. Calcular coordenadas y matriz
+            // 1. Calcular coordenadas y matriz
             var coords = ArbolGenealogicoService.CalcularLayoutCompleto(lista);
             var index = lista.ToDictionary(m => m.Cedula, m => lista.IndexOf(m));
             var matriz = ArbolGenealogicoService.GenerarMatriz(lista);
 
-            // 3. Dibujar nodos
+            // 2. Dibujar nodos
             visualPorCedula = new Dictionary<int, Border>();
             foreach (var m in lista)
             {
@@ -579,7 +574,7 @@ namespace ArbolGenealogicoWPF
 
                 var cont = new Border
                 {
-                    Background = Brushes.Transparent, // base transparente
+                    Background = Brushes.Transparent,
                     BorderBrush = Brushes.Gray,
                     BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(6),
@@ -595,7 +590,8 @@ namespace ArbolGenealogicoWPF
                 visualPorCedula[m.Cedula] = cont;
             }
 
-            // 4. Dibujar conexiones (líneas)
+            // 3. Dibujar conexiones
+            var parejaCentros = new Dictionary<(int, int), Point>();
             for (int i = 0; i < lista.Count; i++)
             {
                 for (int j = 0; j < lista.Count; j++)
@@ -608,29 +604,138 @@ namespace ArbolGenealogicoWPF
                     var pi = GridToPixel(coords[mi.Cedula]);
                     var pj = GridToPixel(coords[mj.Cedula]);
 
-                    var line = new Line
-                    {
-                        X1 = pi.X + 60,
-                        Y1 = pi.Y + 40,
-                        X2 = pj.X + 60,
-                        Y2 = pj.Y + 40,
-                        StrokeThickness = w is 4 or 5 ? 2 : 3,
-                        Stroke = w switch
-                        {
-                            0 => Brushes.DarkGreen, // padre→hijo
-                            1 => Brushes.SeaGreen,  // madre→hijo
-                            2 => Brushes.DarkBlue,  // hijo→padre
-                            3 => Brushes.SlateBlue, // hijo→madre
-                            4 => Brushes.Orange,    // pareja
-                            5 => Brushes.Gray,      // hermanos
-                            _ => Brushes.Black
-                        }
-                    };
+                    DibujarConexion(arbolCanvas, mi, mj, w, pi, pj, parejaCentros);
+                }
+            }
 
-                    arbolCanvas.Children.Add(line);
+            // 4. Dibujar línea común para hermanos
+            var hermanosPorFila = lista
+                .GroupBy(m => coords[m.Cedula].Row)
+                .Select(g => g.Where(m => m.Hermanos.Any()).ToList())
+                .Where(grupo => grupo.Count > 1);
+
+            foreach (var grupo in hermanosPorFila)
+            {
+                var puntos = grupo.Select(m => GridToPixel(coords[m.Cedula])).ToList();
+                double minX = puntos.Min(p => p.X + 60);
+                double maxX = puntos.Max(p => p.X + 60);
+                double y = puntos.Min(p => p.Y) - 10;
+
+                var lineaSuperior = new Line
+                {
+                    X1 = minX,
+                    Y1 = y,
+                    X2 = maxX,
+                    Y2 = y,
+                    Stroke = Brushes.Gray,
+                    StrokeThickness = 2
+                };
+                arbolCanvas.Children.Add(lineaSuperior);
+
+                foreach (var p in puntos)
+                {
+                    var vertical = new Line
+                    {
+                        X1 = p.X + 60,
+                        Y1 = y,
+                        X2 = p.X + 60,
+                        Y2 = p.Y,
+                        Stroke = Brushes.Gray,
+                        StrokeThickness = 2
+                    };
+                    arbolCanvas.Children.Add(vertical);
                 }
             }
         }
+
+
+
+        // Helper para dibujar conexiones
+        private void DibujarConexion(Canvas canvas, MiembroFamilia mi, MiembroFamilia mj, int tipo, Point pi, Point pj, Dictionary<(int, int), Point> parejaCentros)
+        {
+            var color = Brushes.Gray;
+
+            switch (tipo)
+            {
+                case 4: // pareja
+                    double x1 = pi.X + 60;
+                    double y1 = pi.Y + 40;
+                    double x2 = pj.X + 60;
+                    double y2 = pj.Y + 40;
+
+                    var parejaLine = new Line
+                    {
+                        X1 = x1,
+                        Y1 = y1,
+                        X2 = x2,
+                        Y2 = y2,
+                        Stroke = color,
+                        StrokeThickness = 2
+                    };
+                    canvas.Children.Add(parejaLine);
+
+                    var key = (Math.Min(mi.Cedula, mj.Cedula), Math.Max(mi.Cedula, mj.Cedula));
+                    parejaCentros[key] = new Point((x1 + x2) / 2.0, (y1 + y2) / 2.0);
+                    break;
+
+                case 0: // padre → hijo
+                case 1: // madre → hijo
+                    var hijoX = pj.X + 60;
+                    var hijoY = pj.Y;
+
+                    Point origen;
+                    if (mi.Pareja != null)
+                    {
+                        var keyPareja = (Math.Min(mi.Cedula, mi.Pareja.Cedula), Math.Max(mi.Cedula, mi.Pareja.Cedula));
+                        if (parejaCentros.TryGetValue(keyPareja, out var centroPareja))
+                        {
+                            origen = centroPareja;
+                        }
+                        else
+                        {
+                            // fallback si no se dibujó la pareja
+                            origen = new Point(pi.X + 60, pi.Y + 100);
+                        }
+                    }
+                    else
+                    {
+                        // Simular pareja virtual a la derecha
+                        double parejaX = pi.X + 120;
+                        double parejaY = pi.Y + 40;
+                        double centroX = (pi.X + parejaX) / 2.0;
+                        double centroY = parejaY;
+
+                        origen = new Point(centroX, centroY);
+                    }
+
+                    double lineaY = hijoY - 10; // altura compartida con línea de hermanos
+
+                    var polyPadre = new Polyline
+                    {
+                        Stroke = color,
+                        StrokeThickness = 2,
+                        Points = new PointCollection
+                {
+                    new Point(origen.X, origen.Y),
+                    new Point(origen.X, lineaY),
+                    new Point(hijoX, lineaY),
+                    new Point(hijoX, hijoY)
+                }
+                    };
+                    canvas.Children.Add(polyPadre);
+                    break;
+
+                case 2:
+                case 3:
+                case 5: // Ya contemplados
+                    break;
+            }
+        }
+
+
+
+
+
 
         private void Nodo_Click(object sender, MouseButtonEventArgs e)
         {
