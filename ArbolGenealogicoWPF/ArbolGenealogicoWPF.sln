@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22 d17.14
+VisualStudioVersion = 17.14.36414.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArbolGenealogicoWPF", "ArbolGenealogicoWPF\ArbolGenealogicoWPF.csproj", "{21C5290F-1C26-4D34-A6A5-88F11BC174D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArbolGenealogico.Tests", "ArbolGenealogico.Tests\ArbolGenealogico.Tests.csproj", "{5B3AEC24-62B8-4975-985F-E609FCA4B181}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{21C5290F-1C26-4D34-A6A5-88F11BC174D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21C5290F-1C26-4D34-A6A5-88F11BC174D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21C5290F-1C26-4D34-A6A5-88F11BC174D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B3AEC24-62B8-4975-985F-E609FCA4B181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B3AEC24-62B8-4975-985F-E609FCA4B181}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B3AEC24-62B8-4975-985F-E609FCA4B181}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B3AEC24-62B8-4975-985F-E609FCA4B181}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

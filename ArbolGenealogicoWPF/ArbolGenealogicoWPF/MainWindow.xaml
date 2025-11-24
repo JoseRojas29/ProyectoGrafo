@@ -396,8 +396,8 @@
 					<TextBlock Text="Fecha de Nacimiento (dd/mm/aaaa)" Margin="0,0,0,8"/>
 					<TextBox x:Name="FechaInput" Margin="0,0,8,8" ToolTip="Fecha de nacimiento (dd/mm/aaaa)"/>
 
-					<TextBlock Text="Coordenadas de residencia x,y" Margin="0,0,0,8"/>
-					<TextBox x:Name="CoordenadasInput" Margin="0,0,8,8" ToolTip="(ej: 9.93,84.08)"/>
+					<TextBlock Text="Coordenadas de residencia (lat,lon)" Margin="0,0,0,8"/>
+					<TextBox x:Name="CoordenadasInput" Margin="0,0,8,8" ToolTip="Rangos (Latitud:8.0__11.5 / Longitud -86.0__-82.0)"/>
 
 					<!-- Contenedor de grid para saber si la persona está viva y obtener su edad -->
 					<Grid Margin="8">

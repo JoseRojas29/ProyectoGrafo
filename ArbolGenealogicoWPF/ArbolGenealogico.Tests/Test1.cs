@@ -1,10 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
+using System.Windows;
 using ArbolGenealogicoWPF;
-using ArbolGenealogicoWPF.Modelos;
 
-namespace Pruebas_Unitarias
+namespace ArbolGenealogico.Tests
 {
     [TestClass]
     public class ArbolGenealogicoServiceTests
@@ -15,7 +13,7 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestAgregarNodo_NuevoNulo_NoDebeAgregar()
         {
-            var seleccionado = new MiembroFamilia("Carlos", "1", DateTime.Now.AddYears(-40), true);
+            var seleccionado = new MiembroFamilia("Carlos", 1, true, null, DateTime.Now.AddYears(-40), "fotoCarlos.png", "9.93,-84.08");
 
             bool resultado = ArbolGenealogicoService.AgregarNodo(null, seleccionado, null, 0);
 
@@ -29,8 +27,8 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestAgregarNodo_Padre()
         {
-            var hijo = new MiembroFamilia("Pedro", "2", DateTime.Now.AddYears(-10), true);
-            var padre = new MiembroFamilia("Luis", "3", DateTime.Now.AddYears(-40), true);
+            var hijo = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
+            var padre = new MiembroFamilia("Luis", 2, true, null, DateTime.Now.AddYears(-45), "fotoLuis.png", "10.01,-84.21");
 
             bool resultado = ArbolGenealogicoService.AgregarNodo(null, hijo, padre, 0);
 
@@ -46,8 +44,8 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestAgregarNodo_Madre()
         {
-            var hijo = new MiembroFamilia("Pedro", "2", DateTime.Now.AddYears(-10), true);
-            var madre = new MiembroFamilia("Ana", "4", DateTime.Now.AddYears(-38), true);
+            var hijo = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
+            var madre = new MiembroFamilia("Ana", 3, true, null, DateTime.Now.AddYears(-43), "fotoAna.png", "10.02,-84.20");
 
             bool resultado = ArbolGenealogicoService.AgregarNodo(null, hijo, madre, 1);
 
@@ -63,8 +61,8 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestAgregarNodo_HijoComoPadre()
         {
-            var padre = new MiembroFamilia("Luis", "3", DateTime.Now.AddYears(-40), true);
-            var hijo = new MiembroFamilia("Pedro", "2", DateTime.Now.AddYears(-10), true);
+            var padre = new MiembroFamilia("Luis", 2, true, null, DateTime.Now.AddYears(-45), "fotoLuis.png", "10.01,-84.21");
+            var hijo = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
 
             bool resultado = ArbolGenealogicoService.AgregarNodo(null, padre, hijo, 2);
 
@@ -79,8 +77,8 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestAgregarNodo_HijoComoMadre()
         {
-            var madre = new MiembroFamilia("Ana", "4", DateTime.Now.AddYears(-38), true);
-            var hijo = new MiembroFamilia("Pedro", "2", DateTime.Now.AddYears(-10), true);
+            var madre = new MiembroFamilia("Ana", 3, true, null, DateTime.Now.AddYears(-43), "fotoAna.png", "10.02,-84.20");
+            var hijo = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
 
             bool resultado = ArbolGenealogicoService.AgregarNodo(null, madre, hijo, 3);
 
@@ -96,8 +94,8 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestAgregarNodo_Pareja()
         {
-            var a = new MiembroFamilia("Luis", "3", DateTime.Now.AddYears(-40), true);
-            var b = new MiembroFamilia("Ana", "4", DateTime.Now.AddYears(-38), true);
+            var a = new MiembroFamilia("Luis", 2, true, null, DateTime.Now.AddYears(-45), "fotoLuis.png", "10.01,-84.21");
+            var b = new MiembroFamilia("Ana", 3, true, null, DateTime.Now.AddYears(-43), "fotoAna.png", "10.02,-84.20");
 
             bool resultado = ArbolGenealogicoService.AgregarNodo(null, a, b, 4);
 
@@ -113,8 +111,8 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestAgregarNodo_Hermano()
         {
-            var a = new MiembroFamilia("Pedro", "2", DateTime.Now.AddYears(-10), true);
-            var b = new MiembroFamilia("Juan", "5", DateTime.Now.AddYears(-12), true);
+            var a = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
+            var b = new MiembroFamilia("Juan", 5, true, null, DateTime.Now.AddYears(-12), "fotoJuan.png", "9.96,-84.06");
 
             bool resultado = ArbolGenealogicoService.AgregarNodo(null, a, b, 5);
 
@@ -130,9 +128,9 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestLigarTodo_PadresComoPareja()
         {
-            var padre = new MiembroFamilia("Luis", "3", DateTime.Now.AddYears(-40), true);
-            var madre = new MiembroFamilia("Ana", "4", DateTime.Now.AddYears(-38), true);
-            var hijo = new MiembroFamilia("Pedro", "2", DateTime.Now.AddYears(-10), true);
+            var padre = new MiembroFamilia("Luis", 2, true, null, DateTime.Now.AddYears(-45), "fotoLuis.png", "10.01,-84.21");
+            var madre = new MiembroFamilia("Ana", 3, true, null, DateTime.Now.AddYears(-43), "fotoAna.png", "10.02,-84.20");
+            var hijo = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
 
             hijo.AsignarPadre(padre);
             hijo.AsignarMadre(madre);
@@ -150,8 +148,8 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestGenerarMatriz_PadreHijo()
         {
-            var padre = new MiembroFamilia("Luis", "1", DateTime.Now.AddYears(-40), true);
-            var hijo = new MiembroFamilia("Pedro", "2", DateTime.Now.AddYears(-10), true);
+            var padre = new MiembroFamilia("Luis", 2, true, null, DateTime.Now.AddYears(-45), "fotoLuis.png", "10.01,-84.21");
+            var hijo = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
 
             hijo.AsignarPadre(padre);
 
@@ -169,8 +167,8 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestCalcularLayout_PadreArribaDeHijo()
         {
-            var padre = new MiembroFamilia("Luis", "1", DateTime.Now.AddYears(-40), true);
-            var hijo = new MiembroFamilia("Pedro", "2", DateTime.Now.AddYears(-10), true);
+            var padre = new MiembroFamilia("Luis", 2, true, null, DateTime.Now.AddYears(-45), "fotoLuis.png", "10.01,-84.21");
+            var hijo = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
 
             hijo.AsignarPadre(padre);
 
@@ -188,11 +186,11 @@ namespace Pruebas_Unitarias
         [TestMethod]
         public void TestRelacionCompleja_LigarTodo()
         {
-            var padre = new MiembroFamilia("Carlos", "10", DateTime.Now.AddYears(-45), true);
-            var madre = new MiembroFamilia("María", "11", DateTime.Now.AddYears(-43), true);
+            var padre = new MiembroFamilia("Carlos", 1, true, null, DateTime.Now.AddYears(-40), "fotoCarlos.png", "9.93,-84.08");
+            var madre = new MiembroFamilia("María", 6, false, 75, new DateTime(1948, 5, 12), "fotoMaria.png", "10.10,-83.95");
 
-            var hijo1 = new MiembroFamilia("Pedro", "12", DateTime.Now.AddYears(-20), true);
-            var hijo2 = new MiembroFamilia("Juan", "13", DateTime.Now.AddYears(-18), true);
+            var hijo1 = new MiembroFamilia("Pedro", 4, true, null, DateTime.Now.AddYears(-10), "fotoPedro.png", "9.95,-84.05");
+            var hijo2 = new MiembroFamilia("Juan", 5, true, null, DateTime.Now.AddYears(-12), "fotoJuan.png", "9.96,-84.06");
 
             hijo1.AsignarPadre(padre);
             hijo1.AsignarMadre(madre);
